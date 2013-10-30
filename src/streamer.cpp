@@ -3,7 +3,9 @@
 
 namespace drc {
 
-Streamer::Streamer(u16 vid_port, u16 aud_port, u16 msg_port) {
+Streamer::Streamer(const std::string& vid_dst,
+                   const std::string& aud_dst,
+                   const std::string& msg_bind) {
   // TODO
 }
 

@@ -1,18 +1,25 @@
 #pragma once
 
+#include <cstring>
 #include <drc/types.h>
+#include <memory>
 #include <mutex>
+#include <vector>
 
 namespace drc {
 
+class UdpServer;
+
 struct InputData {
   InputData() {
-    valid = false;
+    // Warning: this will break horribly if InputData stops being a POD at some
+    // point in the future.
+    memset(this, 0, sizeof (*this));
   }
 
   bool valid;
 
-  enum Button {
+  enum ButtonMask {
     kBtnSync = 0x1,
     kBtnHome = 0x2,
     kBtnMinus = 0x4,
@@ -53,9 +60,9 @@ struct InputData {
 
 class InputReceiver {
  public:
-  static const u16 kDefaultPort = 50022;
+  static constexpr const char* kDefaultBind = "192.168.1.10:50022";
 
-  InputReceiver(u16 recv_port = kDefaultPort);
+  InputReceiver(const std::string& hid_bind = kDefaultBind);
   virtual ~InputReceiver();
 
   bool Start();
@@ -64,6 +71,13 @@ class InputReceiver {
   void Poll(InputData& data);
 
  private:
+  void SetCurrent(const InputData& new_current);
+
+  bool ProcessInputMessage(const std::vector<byte>& data);
+  bool ProcessInputTimeout();
+
+  std::unique_ptr<UdpServer> server_;
+
   InputData current_;
   std::mutex current_mutex_;
 };
