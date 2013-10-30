@@ -6,6 +6,20 @@
 
 namespace drc {
 
+namespace {
+
+// Range of the directional sticks. This is kind of approximate but should
+// still be accurate enough. Some sticks might report values lower than the
+// minimum or higher than the maximum - just clamp in that case.
+const s16 kDrcStickMin = 900;
+const s16 kDrcStickMax = 3200;
+
+// Dead zone: values that are < to the dead zone will be converted to 0 instead
+// to avoid noise.
+const float kStickDeadZone = 0.1;
+
+}  // namespace
+
 InputReceiver::InputReceiver(const std::string& hid_bind)
     : server_(new UdpServer(hid_bind)) {
 }
@@ -57,10 +71,27 @@ bool InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
   int buttons = (msg[80] << 16) | (msg[2] << 8) | msg[3];
   data.buttons = static_cast<InputData::ButtonMask>(buttons);
 
-  data.left_stick_x = (msg[7] << 8) | msg[6];
-  data.left_stick_y = (msg[9] << 8) | msg[8];
-  data.right_stick_x = (msg[11] << 8) | msg[10];
-  data.right_stick_y = (msg[13] << 8) | msg[12];
+  // Convert the integer stick values to floating point -1..1 range.
+  float* sticks[] = { &data.left_stick_x, &data.left_stick_y,
+                      &data.right_stick_x, &data.right_stick_y };
+  for (size_t i = 0; i < sizeof (sticks) / sizeof (sticks[0]); ++i) {
+    s16 val_int = (msg[7 + 2*i] << 8) | msg[6 + 2*i];
+
+    // Clamp to min/max range.
+    val_int = std::max(kDrcStickMin, std::min(kDrcStickMax, val_int));
+
+    // Transform to -MID, +MID.
+    s16 mid = (kDrcStickMax - kDrcStickMin) / 2;
+    val_int -= kDrcStickMin + mid;
+
+    // Divide by MID to move to -1.0, +1.0.
+    *sticks[i] = static_cast<float>(val_int) / mid;
+
+    // Apply the dead zone.
+    if (*sticks[i] > -kStickDeadZone && *sticks[i] < kStickDeadZone) {
+      *sticks[i] = 0.0;
+    }
+  }
 
   data.battery_charge = msg[5];
   data.audio_volume = msg[14];

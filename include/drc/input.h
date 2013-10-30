@@ -42,10 +42,11 @@ struct InputData {
     kBtnL3 = 0x800000,
   } buttons;
 
-  s16 left_stick_x;
-  s16 left_stick_y;
-  s16 right_stick_x;
-  s16 right_stick_y;
+  // Range: -1.0 to 1.0.
+  float left_stick_x;
+  float left_stick_y;
+  float right_stick_x;
+  float right_stick_y;
 
   u8 battery_charge;
   u8 audio_volume;
