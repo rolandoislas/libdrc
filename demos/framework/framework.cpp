@@ -128,6 +128,13 @@ void SwapBuffers(int fps_limit) {
   if (delta.tv_sec == 0 && nsec_planned > delta.tv_nsec) {
     delta.tv_nsec = nsec_planned - delta.tv_nsec;
     nanosleep(&delta, NULL);
+
+    // Readjust current timestamp to start after the nanosleep.
+    ts.tv_nsec += delta.tv_nsec;
+    if (ts.tv_nsec >= 1000000000L) {
+      ts.tv_nsec -= 1000000000L;
+      ts.tv_sec += 1;
+    }
   }
 
   prev_ts = ts;
