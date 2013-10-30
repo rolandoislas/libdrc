@@ -37,9 +37,9 @@ struct InputData {
     kBtnB = 0x4000,
     kBtnA = 0x8000,
 
-    kBtnTV = 0x20000,
-    kBtnR3 = 0x40000,
-    kBtnL3 = 0x80000,
+    kBtnTV = 0x200000,
+    kBtnR3 = 0x400000,
+    kBtnL3 = 0x800000,
   } buttons;
 
   s16 left_stick_x;
