@@ -23,12 +23,24 @@ void InitRendering() {
 void RenderFrame(const drc::InputData& input_data) {
   static float rot[2], trans[2];
 
+  if (input_data.valid) {
+    trans[0] += input_data.left_stick_x / 40.0;
+    trans[1] += input_data.left_stick_y / 40.0;
+
+    rot[0] += input_data.right_stick_x * 2.0;
+    rot[1] += input_data.right_stick_y * 2.0;
+  }
+
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClearDepth(1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glLoadIdentity();
   glTranslated(0.0, 0.0, -6.0);
+
+  glTranslated(trans[0], trans[1], 0.0);
+  glRotated(rot[0], 1.0, 0.0, 0.0);
+  glRotated(rot[1], 0.0, 1.0, 0.0);
 
   glBegin(GL_TRIANGLES);
     glVertex3d(0.0, 1.0, 0.0);
