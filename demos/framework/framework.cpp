@@ -98,10 +98,23 @@ void TryPushingFrame() {
   }
 
   std::vector<drc::u8> frame = demo::TryReadbackFromGL();
-  if (frame.size()) {
-    g_streamer->PushFrame(frame, drc::kScreenWidth, drc::kScreenHeight,
-                          drc::Streamer::kBGRA);
+  if (!frame.size()) {
+    // Generate a white->black horizontal gradient.
+    frame.resize(drc::kScreenWidth * drc::kScreenHeight * 4);
+    for (int i = 0; i < drc::kScreenHeight; ++i) {
+      float intensity = 255.0;
+      for (int j = 0; j < drc::kScreenWidth; ++j) {
+        int idx = (i * drc::kScreenWidth + j) * 4;
+        frame[idx] = (drc::u8)intensity;
+        frame[idx+1] = (drc::u8)intensity;
+        frame[idx+2] = (drc::u8)intensity;
+        frame[idx+3] = 255;
+        intensity -= (255.0 / drc::kScreenWidth);
+      }
+    }
   }
+  g_streamer->PushVidFrame(frame, drc::kScreenWidth, drc::kScreenHeight,
+                           drc::PixelFormat::kBGRA);
 }
 
 void SwapBuffers(int fps_limit) {
