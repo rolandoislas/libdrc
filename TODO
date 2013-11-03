@@ -13,6 +13,9 @@ Major priority
 Minor priority
 --------------
 
+* Use one single thread for the video converter instead of having std::async
+  spawning a new thread every frame.
+
 * Detect the wlan interface used to get the TSF instead of hardcoding it.
 
 * Gamepad mode
