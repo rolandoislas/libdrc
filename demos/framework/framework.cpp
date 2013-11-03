@@ -88,6 +88,21 @@ std::vector<drc::u8> TryReadbackFromGL() {
 
   // TODO: PBO
 
+  // Very stupid implementation - ideally the rotating should be done on GPU
+  // side, and the GPU should directly output YUV data.
+  ret.resize(drc::kScreenWidth * drc::kScreenHeight * 4);
+  glReadPixels(0, 0, drc::kScreenWidth, drc::kScreenHeight, GL_BGRA,
+               GL_UNSIGNED_BYTE, ret.data());
+  for (int y = 0; y <= drc::kScreenHeight / 2; ++y) {
+    int base = drc::kScreenWidth * y;
+    int rev_base = drc::kScreenWidth * (drc::kScreenHeight - y - 1);
+    for (int x = 0; x < drc::kScreenWidth * 4; ++x) {
+      int tmp = ret[rev_base + x];
+      ret[rev_base + x] = ret[base + x];
+      ret[base + x] = tmp;
+    }
+  }
+
   return ret;
 }
 
