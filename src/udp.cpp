@@ -80,10 +80,10 @@ UdpServer::UdpServer(const std::string& bind_addr)
 }
 
 UdpServer::~UdpServer() {
-  StopListening();
+  Stop();
 }
 
-bool UdpServer::StartListening() {
+bool UdpServer::Start() {
   sockaddr_in sin;
   memset(&sin, 0, sizeof (sin));
   sin.sin_family = AF_INET;
@@ -112,7 +112,7 @@ bool UdpServer::StartListening() {
   return true;
 }
 
-void UdpServer::StopListening() {
+void UdpServer::Stop() {
   if (event_fd_ == -1) {
     return;
   }

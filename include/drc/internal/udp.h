@@ -32,8 +32,8 @@ class UdpServer {
   UdpServer(const std::string& bind_addr);
   virtual ~UdpServer();
 
-  bool StartListening();
-  void StopListening();
+  bool Start();
+  void Stop();
 
   void SetTimeout(u64 us) { timeout_us_ = us; }
 

@@ -44,7 +44,7 @@ bool Streamer::Start() {
         PushNativeVidFrame(yuv_frame);
       });
 
-  if (!msg_server_->StartListening() ||
+  if (!msg_server_->Start() ||
       !vid_converter_->Start() ||
       !vid_streamer_->Start()) {
     Stop();
@@ -54,7 +54,7 @@ bool Streamer::Start() {
 }
 
 void Streamer::Stop() {
-  msg_server_->StopListening();
+  msg_server_->Stop();
   vid_converter_->Stop();
   vid_streamer_->Stop();
 }

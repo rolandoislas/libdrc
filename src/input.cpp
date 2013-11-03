@@ -40,14 +40,14 @@ bool InputReceiver::Start() {
   server_->SetTimeoutCallback(
       std::bind(&InputReceiver::ProcessInputTimeout, this));
 
-  if (!server_->StartListening()) {
+  if (!server_->Start()) {
     return false;
   }
   return true;
 }
 
 void InputReceiver::Stop() {
-  server_->StopListening();
+  server_->Stop();
 }
 
 void InputReceiver::Poll(InputData& data) {
