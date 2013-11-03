@@ -2,10 +2,27 @@
 
 #include <drc/types.h>
 #include <functional>
+#include <netinet/in.h>
 #include <string>
 #include <thread>
 
 namespace drc {
+
+class UdpClient {
+ public:
+  UdpClient(const std::string& dst_addr);
+  virtual ~UdpClient();
+
+  bool Start();
+  void Stop();
+
+  bool Send(const std::vector<byte>& msg);
+
+ private:
+  int sock_fd_;
+  std::string dst_addr_;
+  sockaddr_in dst_addr_parsed_;
+};
 
 class UdpServer {
  public:

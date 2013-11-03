@@ -33,6 +33,45 @@ bool ParseBindAddress(const std::string& bind_addr, in_addr* addr, u16* port) {
 
 }  // namespace
 
+UdpClient::UdpClient(const std::string& dst_addr)
+    : sock_fd_(-1),
+      dst_addr_(dst_addr) {
+}
+
+UdpClient::~UdpClient() {
+  Stop();
+}
+
+bool UdpClient::Start() {
+  memset(&dst_addr_parsed_, 0, sizeof (dst_addr_parsed_));
+  dst_addr_parsed_.sin_family = AF_INET;
+  if (!ParseBindAddress(dst_addr_, &dst_addr_parsed_.sin_addr,
+                        &dst_addr_parsed_.sin_port)) {
+    return false;
+  }
+
+  sock_fd_ = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (sock_fd_ == -1) {
+    return false;
+  }
+
+  return true;
+}
+
+void UdpClient::Stop() {
+  if (sock_fd_ != -1) {
+    close(sock_fd_);
+  }
+}
+
+bool UdpClient::Send(const std::vector<byte>& msg) {
+  if (sendto(sock_fd_, msg.data(), msg.size(), 0, (sockaddr*)&dst_addr_parsed_,
+             sizeof (dst_addr_parsed_)) < 0) {
+    return false;
+  }
+  return true;
+}
+
 UdpServer::UdpServer(const std::string& bind_addr)
     : sock_fd_(-1),
       event_fd_(-1),
@@ -41,9 +80,7 @@ UdpServer::UdpServer(const std::string& bind_addr)
 }
 
 UdpServer::~UdpServer() {
-  if (event_fd_ != -1) {
-    StopListening();
-  }
+  StopListening();
 }
 
 bool UdpServer::StartListening() {
