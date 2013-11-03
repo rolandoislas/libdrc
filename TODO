@@ -1,0 +1,21 @@
+Major priority
+--------------
+
+* Provide a timer class that bases itself off the TSF and provides a sub-100us
+  accuracy while resyncing regularly to handle TSF drifting.
+
+* Encode and stream video.
+
+* Implement PBO readback (take the code from the current drcstream codebase)
+
+* Provide an interface for audio streaming
+
+Minor priority
+--------------
+
+* Detect the wlan interface used to get the TSF instead of hardcoding it.
+
+* Gamepad mode
+
+* Think about a startable/stoppable interface to be able to perform
+  init/shutdown of several instances more easily.
