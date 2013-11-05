@@ -2,7 +2,9 @@
 
 #include <drc/types.h>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 namespace drc {
 
@@ -26,11 +28,18 @@ class VideoStreamer {
   void ResyncStream();
 
  private:
+  void ThreadLoop();
+
   std::unique_ptr<UdpClient> astrm_client_;
   std::unique_ptr<UdpClient> vstrm_client_;
 
   std::unique_ptr<H264Encoder> encoder_;
+
+  std::mutex frame_mutex_;
   std::vector<byte> frame_;
+
+  int event_fd_;
+  std::thread streaming_thread_;
 };
 
 }  // namespace drc
