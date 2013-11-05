@@ -1,30 +1,18 @@
 #include <cstring>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-converter.h>
+#include <drc/internal/video-streamer.h>
 #include <drc/streamer.h>
 #include <vector>
 
 namespace drc {
-
-// TODO: remove
-class VideoStreamer {
- public:
-  VideoStreamer(const std::string& dst) {}
-  virtual ~VideoStreamer() {}
-
-  bool Start() { return true; }
-  void Stop() {}
-
-  void PushFrame(std::vector<byte>& frame) {}
-  void ResyncStream() {}
-};
 
 Streamer::Streamer(const std::string& vid_dst,
                    const std::string& aud_dst,
                    const std::string& msg_bind) 
     : msg_server_(new UdpServer(msg_bind)),
       vid_converter_(new VideoConverter()),
-      vid_streamer_(new VideoStreamer(vid_dst)) {
+      vid_streamer_(new VideoStreamer(vid_dst, aud_dst)) {
 }
 
 Streamer::~Streamer() {
