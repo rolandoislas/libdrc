@@ -86,7 +86,8 @@ void H264Encoder::CreateEncoder() {
              "Encoder parameters will cause frames to be delayed");
 }
 
-const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame) {
+const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame,
+                                          bool idr) {
   x264_picture_t input;
   x264_picture_init(&input);
 
@@ -112,6 +113,10 @@ const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame) {
   // Plane 2: V, offset sizeof(Y)+sizeof(U), 0.5 byte per horizontal pixel
   input.img.i_stride[2] = kScreenWidth / 2;
   input.img.plane[2] = input.img.plane[1] + (kScreenWidth * kScreenHeight) / 4;
+
+  if (idr) {
+    input.i_type = X264_TYPE_IDR;
+  }
 
   // Since we use a nalu_process callback, these will/might not contain correct
   // data (especially since we do not behave well and NAL encode the NAL units

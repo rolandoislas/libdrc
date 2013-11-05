@@ -23,7 +23,7 @@ class H264Encoder {
   virtual ~H264Encoder();
 
   // The returned chunk array is only valid until the next call to Encode.
-  const H264ChunkArray& Encode(const std::vector<byte>& frame);
+  const H264ChunkArray& Encode(const std::vector<byte>& frame, bool idr);
 
  private:
   void ProcessNalUnit(x264_nal_t* nal);
