@@ -116,6 +116,8 @@ const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame,
 
   if (idr) {
     input.i_type = X264_TYPE_IDR;
+  } else {
+    input.i_type = X264_TYPE_P;
   }
 
   // Since we use a nalu_process callback, these will/might not contain correct

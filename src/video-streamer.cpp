@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <drc/internal/h264-encoder.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-streamer.h>
@@ -16,7 +17,8 @@ VideoStreamer::VideoStreamer(const std::string& vid_dst,
     : astrm_client_(new UdpClient(aud_dst)),
       vstrm_client_(new UdpClient(vid_dst)),
       encoder_(new H264Encoder()),
-      event_fd_(-1) {
+      stop_event_fd_(-1),
+      resync_event_fd_(-1) {
 }
 
 VideoStreamer::~VideoStreamer() {
@@ -28,8 +30,9 @@ bool VideoStreamer::Start() {
     return false;
   }
 
-  event_fd_ = eventfd(0, EFD_NONBLOCK);
-  if (event_fd_ == -1) {
+  stop_event_fd_ = eventfd(0, EFD_NONBLOCK);
+  resync_event_fd_ = eventfd(0, EFD_NONBLOCK);
+  if (stop_event_fd_ == -1 || resync_event_fd_ == -1) {
     Stop();
     return false;
   }
@@ -39,12 +42,16 @@ bool VideoStreamer::Start() {
 }
 
 void VideoStreamer::Stop() {
-  if (event_fd_ != -1) {
+  if (stop_event_fd_ != -1) {
     u64 val = 1;
-    write(event_fd_, &val, sizeof (val));
+    write(stop_event_fd_, &val, sizeof (val));
     streaming_thread_.join();
 
-    close(event_fd_);
+    close(stop_event_fd_);
+  }
+
+  if (resync_event_fd_ != -1) {
+    close(resync_event_fd_);
   }
 
   astrm_client_->Stop();
@@ -57,44 +64,54 @@ void VideoStreamer::PushFrame(std::vector<byte>& frame) {
 }
 
 void VideoStreamer::ResyncStream() {
-  // TODO: not used yet since we always send IDRs.
+  u64 val = 1;
+  write(resync_event_fd_, &val, sizeof (val));
 }
 
 void VideoStreamer::ThreadLoop() {
   bool cont = true;
-  pollfd event = { event_fd_, POLLIN, 0 };
+  pollfd events[] = {
+    { stop_event_fd_, POLLIN, 0 },
+    // TODO: enable when resyncs are actually being handled
+    //{ resync_event_fd_, POLLIN, 0 },
+  };
+  size_t nfds = sizeof (events) / sizeof (events[0]);
 
   std::vector<byte> encoding_frame;
   timespec sleep_time = { 0, 0 };
   while (cont) {
-    if (ppoll(&event, 1, &sleep_time, NULL) == -1) {
+    if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
       cont = false;
-      break;
     }
 
-    if (event.revents & POLLIN) {
-      cont = false;
-      break;
-    }
-
-    // TODO: if we have vstrm/astrm messages to send, send them.
-
-    // Encode next frame in advance.
-    {
-      std::lock_guard<std::mutex> lk(frame_mutex_);
-      if (frame_.size() != 0) {
-        encoding_frame = std::move(frame_);
+    for (size_t i = 0; i < nfds; ++i) {
+      if (events[i].fd == stop_event_fd_ && events[i].revents) {
+        cont = false;
       }
     }
 
+    // If an error occurred or we were asked to stop, no need to continue
+    // sending and/or encoding this frame.
+    if (cont == false) {
+      break;
+    }
+
+    LatchOnCurrentFrame(encoding_frame);
     if (encoding_frame.size() == 0) {
       continue;
     }
 
-    const H264ChunkArray& chunks = encoder_->Encode(encoding_frame);
+    const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, true);
+    size_t total_size = 0;
+    for (auto& ch : chunks) { total_size += std::get<1>(ch); }
+    printf("Frame size: %zd\n", total_size);
+  }
+}
 
-    // TODO: craft astrm/vstrm packets.
-    // TODO: recompute sleep_time.
+void VideoStreamer::LatchOnCurrentFrame(std::vector<byte>& latched_frame) {
+  std::lock_guard<std::mutex> lk(frame_mutex_);
+  if (frame_.size() != 0) {
+    latched_frame = std::move(frame_);
   }
 }
 

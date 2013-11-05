@@ -29,6 +29,7 @@ class VideoStreamer {
 
  private:
   void ThreadLoop();
+  void LatchOnCurrentFrame(std::vector<byte>& latched_frame);
 
   std::unique_ptr<UdpClient> astrm_client_;
   std::unique_ptr<UdpClient> vstrm_client_;
@@ -38,7 +39,8 @@ class VideoStreamer {
   std::mutex frame_mutex_;
   std::vector<byte> frame_;
 
-  int event_fd_;
+  int stop_event_fd_;
+  int resync_event_fd_;
   std::thread streaming_thread_;
 };
 
