@@ -101,16 +101,16 @@ const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame) {
   input.img.i_csp = X264_CSP_I420;
   input.img.i_plane = 3;
 
-  // Plane 0: Y, offset 0, 1 byte per pixel
+  // Plane 0: Y, offset 0, 1 byte per horizontal pixel
   input.img.i_stride[0] = kScreenWidth;
   input.img.plane[0] = data;
 
-  // Plane 1: U, offset sizeof(Y), 0.25 byte per pixel
-  input.img.i_stride[1] = kScreenWidth / 4;
+  // Plane 1: U, offset sizeof(Y), 0.5 byte per horizontal pixel
+  input.img.i_stride[1] = kScreenWidth / 2;
   input.img.plane[1] = input.img.plane[0] + (kScreenWidth * kScreenHeight);
 
-  // Plane 2: V, offset sizeof(Y)+sizeof(U), 0.25 byte per pixel
-  input.img.i_stride[2] = kScreenWidth / 4;
+  // Plane 2: V, offset sizeof(Y)+sizeof(U), 0.5 byte per horizontal pixel
+  input.img.i_stride[2] = kScreenWidth / 2;
   input.img.plane[2] = input.img.plane[1] + (kScreenWidth * kScreenHeight) / 4;
 
   // Since we use a nalu_process callback, these will/might not contain correct

@@ -122,8 +122,8 @@ void VideoConverter::DoConversion() {
   };
   int converted_strides[4] = {
       kScreenWidth,
-      kScreenWidth / 4,
-      kScreenWidth / 4,
+      kScreenWidth / 2,
+      kScreenWidth / 2,
       0
   };
 
