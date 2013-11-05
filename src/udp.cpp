@@ -121,6 +121,7 @@ void UdpServer::Stop() {
   write(event_fd_, &val, sizeof (val));
 
   thread_.join();
+  CloseSockets();
 }
 
 void UdpServer::CloseSockets() {
