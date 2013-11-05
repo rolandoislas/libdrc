@@ -13,6 +13,9 @@ Major priority
 Minor priority
 --------------
 
+* Proper event handling class that could be used on both Win/Lin to replace the
+  current eventfd/ppoll code.
+
 * Use one single thread for the video converter instead of having std::async
   spawning a new thread every frame.
 
