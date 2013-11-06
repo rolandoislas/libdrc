@@ -64,8 +64,8 @@ void UdpClient::Stop() {
   }
 }
 
-bool UdpClient::Send(const std::vector<byte>& msg) {
-  if (sendto(sock_fd_, msg.data(), msg.size(), 0, (sockaddr*)&dst_addr_parsed_,
+bool UdpClient::Send(const byte* data, size_t size) {
+  if (sendto(sock_fd_, data, size, 0, (sockaddr*)&dst_addr_parsed_,
              sizeof (dst_addr_parsed_)) < 0) {
     return false;
   }

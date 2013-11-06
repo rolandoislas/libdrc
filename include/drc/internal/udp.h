@@ -16,7 +16,10 @@ class UdpClient {
   bool Start();
   void Stop();
 
-  bool Send(const std::vector<byte>& msg);
+  bool Send(const byte* data, size_t size);
+  bool Send(const std::vector<byte>& msg) {
+    return Send(msg.data(), msg.size());
+  }
 
  private:
   int sock_fd_;
