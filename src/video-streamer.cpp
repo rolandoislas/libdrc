@@ -1,8 +1,10 @@
 #include <algorithm>
 #include <cstdio>
+#include <fcntl.h>
 #include <drc/internal/h264-encoder.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-streamer.h>
+#include <drc/internal/vstrm-packet.h>
 #include <mutex>
 #include <poll.h>
 #include <string>
@@ -15,38 +17,21 @@ namespace drc {
 
 namespace {
 
-enum class VstrmFrameRate {
-  k59_94Hz,
-  k50Hz,
-  k29_97Hz,
-  k25Hz,
-};
-
-// TODO: un-stub and move to its own file
-struct VstrmPacket {
-  void SetSeqId(u16 seqid) {}
-  void SetPayload(const byte* payload, size_t size) {}
-  void SetTimestamp(u32 ts) {}
-  void SetInit(bool init_flag) {}
-  void SetFrameBegin(bool frame_begin) {}
-  void SetChunkEnd(bool chunk_end) {}
-  void SetFrameEnd(bool frame_end) {}
-  void SetIdr(bool idr) {}
-  void SetFrameRate(VstrmFrameRate framerate) {}
-
-  const byte* GetBytes() const { return (const byte*)"foo"; }
-  size_t GetSize() const { return 3; }
-};
-
-const size_t kMaxVstrmPacketSize = 1400;
+// TODO: that's not very clean.
+u32 get_timestamp() {
+  static int fd = -1;
+  if (fd == -1) {
+    fd = open("/sys/class/net/wlan1/device/tsf", O_RDONLY);
+  }
+  u64 ts = 0;
+  read(fd, &ts, sizeof (ts));
+  lseek(fd, 0, SEEK_SET);
+  return static_cast<u32>(ts);
+}
 
 void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
-                          const H264ChunkArray& chunks,
+                          const H264ChunkArray& chunks, u32 timestamp,
                           bool* vstrm_inited, u16* vstrm_seqid) {
-  u16 seqid = (*vstrm_seqid)++;
-  if (*vstrm_seqid >= 1024) {
-    *vstrm_seqid = 0;
-  }
 
   // Set the init flag on the first frame ever sent.
   bool init_flag = !*vstrm_inited;
@@ -65,7 +50,7 @@ void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
     bool first_packet = true;
     do {
       const byte* pkt_data = chunk_data;
-      size_t pkt_size = std::min(kMaxVstrmPacketSize, chunk_size);
+      size_t pkt_size = std::min(kMaxVstrmPayloadSize, chunk_size);
 
       chunk_data += pkt_size;
       chunk_size -= pkt_size;
@@ -75,20 +60,25 @@ void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
       vstrm_packets->resize(vstrm_packets->size() + 1);
       VstrmPacket* pkt = &vstrm_packets->at(vstrm_packets->size() - 1);
 
+      u16 seqid = (*vstrm_seqid)++;
+      if (*vstrm_seqid >= 1024) {
+        *vstrm_seqid = 0;
+      }
       pkt->SetSeqId(seqid);
+
       pkt->SetPayload(pkt_data, pkt_size);
-      pkt->SetTimestamp(0); // TODO
+      pkt->SetTimestamp(timestamp);
 
-      pkt->SetInit(init_flag);
-      pkt->SetFrameBegin(first_chunk && first_packet);
-      pkt->SetChunkEnd(last_packet);
-      pkt->SetFrameEnd(last_chunk && last_packet);
+      pkt->SetInitFlag(init_flag);
+      pkt->SetFrameBeginFlag(first_chunk && first_packet);
+      pkt->SetChunkEndFlag(last_packet);
+      pkt->SetFrameEndFlag(last_chunk && last_packet);
 
-      pkt->SetIdr(true); // TODO
+      pkt->SetIdrFlag(true); // TODO
       pkt->SetFrameRate(VstrmFrameRate::k59_94Hz); // TODO
 
       first_packet = false;
-    } while (chunk_size >= kMaxVstrmPacketSize);
+    } while (chunk_size >= kMaxVstrmPayloadSize);
   }
 }
 
@@ -190,11 +180,10 @@ void VideoStreamer::ThreadLoop() {
     }
 
     const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, true);
-    GenerateVstrmPackets(&vstrm_packets, chunks, &vstrm_inited, &vstrm_seqid);
+    GenerateVstrmPackets(&vstrm_packets, chunks, get_timestamp(),
+                         &vstrm_inited, &vstrm_seqid);
 
-    size_t total_size = 0;
-    for (auto& ch : chunks) { total_size += std::get<1>(ch); }
-    printf("Frame size: %zd\n", total_size);
+    sleep_time.tv_nsec = 16666667;
   }
 }
 
