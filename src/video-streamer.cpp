@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <fcntl.h>
+#include <drc/internal/astrm-packet.h>
 #include <drc/internal/h264-encoder.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-streamer.h>
@@ -17,7 +18,7 @@ namespace drc {
 
 namespace {
 
-// TODO: that's not very clean.
+// TODO: that's not clean at all.
 u32 get_timestamp() {
   static int fd = -1;
   if (fd == -1) {
@@ -26,7 +27,7 @@ u32 get_timestamp() {
   u64 ts = 0;
   read(fd, &ts, sizeof (ts));
   lseek(fd, 0, SEEK_SET);
-  return static_cast<u32>(ts);
+  return ts & 0xFFFFFFFF;
 }
 
 void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
@@ -80,6 +81,26 @@ void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
       first_packet = false;
     } while (chunk_size >= kMaxVstrmPayloadSize);
   }
+}
+
+void GenerateAstrmPacket(AstrmPacket* pkt, u32 ts) {
+  pkt->ResetPacket();
+  pkt->SetPacketType(AstrmPacketType::kVideoFormat);
+  pkt->SetTimestamp(0x00100000);
+
+  byte payload[24] = {
+      0x00, 0x00, 0x00, 0x00,
+      0x80, 0x3e, 0x00, 0x00,
+      0x80, 0x3e, 0x00, 0x00,
+      0x80, 0x3e, 0x00, 0x00,
+      0x80, 0x3e, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+  };
+  payload[0] = ts & 0xFF;
+  payload[1] = (ts >> 8) & 0xFF;
+  payload[2] = (ts >> 16) & 0xFF;
+  payload[3] = (ts >> 24) & 0xFF;
+  pkt->SetPayload(payload, sizeof (payload));
 }
 
 }  // namespace
@@ -154,6 +175,9 @@ void VideoStreamer::ThreadLoop() {
   bool vstrm_inited = false;
   u16 vstrm_seqid = 0;
   std::vector<VstrmPacket> vstrm_packets;
+
+  u16 astrm_seqid = 0;
+  AstrmPacket astrm_packet;
   while (true) {
     if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
       break;
@@ -169,6 +193,7 @@ void VideoStreamer::ThreadLoop() {
       break;
     }
 
+    astrm_client_->Send(astrm_packet.GetBytes(), astrm_packet.GetSize());
     for (const auto& pkt : vstrm_packets) {
       vstrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
     }
@@ -180,9 +205,12 @@ void VideoStreamer::ThreadLoop() {
     }
 
     const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, true);
-    GenerateVstrmPackets(&vstrm_packets, chunks, get_timestamp(),
+    u32 timestamp = get_timestamp();
+    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp,
                          &vstrm_inited, &vstrm_seqid);
+    GenerateAstrmPacket(&astrm_packet, timestamp);
 
+    // TODO: this ignores TSF drifting issues.
     sleep_time.tv_nsec = 16666667;
   }
 }

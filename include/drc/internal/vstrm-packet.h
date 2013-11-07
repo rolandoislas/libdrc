@@ -6,7 +6,7 @@
 
 namespace drc {
 
-const size_t kMaxVstrmHeaderSize = 16;
+const size_t kVstrmHeaderSize = 16;
 
 // Limit our payload size to around 1400 bytes to work on systems with default
 // mtu configured (1500).
@@ -52,7 +52,7 @@ class VstrmPacket {
   void SetPayload(const byte* payload, size_t size);
 
   const byte* GetBytes() const { return pkt_.data(); }
-  size_t GetSize() const { return kMaxVstrmHeaderSize + PayloadSize(); }
+  size_t GetSize() const { return kVstrmHeaderSize + PayloadSize(); }
 
   // Reset the packet to use default values for everything.
   void ResetPacket();
@@ -62,7 +62,7 @@ class VstrmPacket {
   void SetExtOption(u8 opt, u8* val = NULL);
   void ClearExtOption(u8 opt, bool has_val);
 
-  std::array<byte, kMaxVstrmHeaderSize + kMaxVstrmPayloadSize> pkt_;
+  std::array<byte, kVstrmHeaderSize + kMaxVstrmPayloadSize> pkt_;
 };
 
 }  // namespace drc

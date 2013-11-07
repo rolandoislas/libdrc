@@ -1,28 +1,12 @@
 #include <cassert>
 #include <cstring>
 #include <drc/internal/vstrm-packet.h>
+#include <drc/internal/utils.h>
 #include <drc/screen.h>
 #include <drc/types.h>
 #include <vector>
 
 namespace drc {
-
-namespace {
-
-inline byte InsertBits(byte v, byte to_insert, int b, int e) {
-  byte mask = ((1 << e) - 1) ^ ((1 << b) - 1);
-  to_insert <<= b;
-  to_insert &= mask;
-  v &= ~mask;
-  return v | to_insert;
-}
-
-inline byte ExtractBits(byte v, int b, int e) {
-  byte mask = ((1 << e) - 1) ^ ((1 << b) - 1);
-  return (v & mask) >> b;
-}
-
-}  // namespace
 
 VstrmPacket::VstrmPacket() {
   ResetPacket();
@@ -73,7 +57,7 @@ size_t VstrmPacket::PayloadSize() const {
 }
 
 void VstrmPacket::SetSeqId(u16 seqid) {
-  pkt_[0] = InsertBits(pkt_[0], seqid >> 8, 0, 3);
+  pkt_[0] = InsertBits(pkt_[0], seqid >> 8, 0, 2);
   pkt_[1] = seqid & 0xFF;
 }
 
