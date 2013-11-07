@@ -164,7 +164,7 @@ void VideoStreamer::ResyncStream() {
 void VideoStreamer::ThreadLoop() {
   pollfd events[] = {
     { stop_event_fd_, POLLIN, 0 },
-    { resync_event_fd_, POLLIN, 0 },
+    //{ resync_event_fd_, POLLIN, 0 },
   };
   size_t nfds = sizeof (events) / sizeof (events[0]);
 
