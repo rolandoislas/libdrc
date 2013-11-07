@@ -197,11 +197,13 @@ void VideoStreamer::ThreadLoop() {
       break;
     }
 
-    astrm_client_->Send(astrm_packet.GetBytes(), astrm_packet.GetSize());
-    for (const auto& pkt : vstrm_packets) {
-      vstrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
+    if (vstrm_inited) {
+      astrm_client_->Send(astrm_packet.GetBytes(), astrm_packet.GetSize());
+      for (const auto& pkt : vstrm_packets) {
+        vstrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
+      }
+      vstrm_packets.clear();
     }
-    vstrm_packets.clear();
 
     LatchOnCurrentFrame(encoding_frame);
     if (encoding_frame.size() == 0) {
