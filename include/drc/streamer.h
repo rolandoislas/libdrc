@@ -27,8 +27,13 @@ class Streamer {
   void Stop();
 
   // Takes ownership of the frame.
+
+  enum FlippingMode {
+    NoFlip,
+    FlipVertically
+  };
   void PushVidFrame(std::vector<byte>& frame, u16 width, u16 height,
-                    PixelFormat pixfmt);
+                    PixelFormat pixfmt, FlippingMode flip = NoFlip);
 
   // Same as PushVidFrame, but the frame needs to already be in the native
   // format for encoding: YUV420P at ScreenWidth x ScreenHeight.

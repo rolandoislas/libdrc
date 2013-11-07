@@ -48,8 +48,10 @@ void Streamer::Stop() {
 }
 
 void Streamer::PushVidFrame(std::vector<byte>& frame, u16 width, u16 height,
-                            PixelFormat pixfmt) {
-  vid_converter_->PushFrame(frame, std::make_tuple(width, height, pixfmt));
+                            PixelFormat pixfmt, FlippingMode flip) {
+  bool do_flip = (flip == FlipVertically);
+  vid_converter_->PushFrame(frame,
+                            std::make_tuple(width, height, pixfmt, do_flip));
 }
 
 void Streamer::PushNativeVidFrame(std::vector<byte>& frame) {

@@ -10,8 +10,9 @@ struct SwsContext;
 
 namespace drc {
 
-// Defined as a tuple to avoid redefining == and <. Fields are w/h/pixfmt.
-typedef std::tuple<u16, u16, PixelFormat> VideoConverterParams;
+// Defined as a tuple to avoid redefining == and <.
+// Fields are w/h/pixfmt/flipv.
+typedef std::tuple<u16, u16, PixelFormat, bool> VideoConverterParams;
 
 class VideoConverter {
  public:
