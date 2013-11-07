@@ -32,7 +32,7 @@ u32 get_timestamp() {
 
 void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
                           const H264ChunkArray& chunks, u32 timestamp,
-                          bool* vstrm_inited, u16* vstrm_seqid) {
+                          bool idr, bool* vstrm_inited, u16* vstrm_seqid) {
 
   // Set the init flag on the first frame ever sent.
   bool init_flag = !*vstrm_inited;
@@ -75,7 +75,7 @@ void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
       pkt->SetChunkEndFlag(last_packet);
       pkt->SetFrameEndFlag(last_chunk && last_packet);
 
-      pkt->SetIdrFlag(true); // TODO
+      pkt->SetIdrFlag(idr);
       pkt->SetFrameRate(VstrmFrameRate::k59_94Hz); // TODO
 
       first_packet = false;
@@ -164,8 +164,7 @@ void VideoStreamer::ResyncStream() {
 void VideoStreamer::ThreadLoop() {
   pollfd events[] = {
     { stop_event_fd_, POLLIN, 0 },
-    // TODO: enable when resyncs are actually being handled
-    //{ resync_event_fd_, POLLIN, 0 },
+    { resync_event_fd_, POLLIN, 0 },
   };
   size_t nfds = sizeof (events) / sizeof (events[0]);
 
@@ -184,9 +183,14 @@ void VideoStreamer::ThreadLoop() {
     }
 
     bool stop_requested = false;
+    bool resync_requested = false;
     for (size_t i = 0; i < nfds; ++i) {
       if (events[i].fd == stop_event_fd_ && events[i].revents) {
         stop_requested = true;
+      }
+      if (events[i].fd == resync_event_fd_ && events[i].revents) {
+        u64 val; read(resync_event_fd_, &val, sizeof (val));
+        resync_requested = true;
       }
     }
     if (stop_requested) {
@@ -204,14 +208,23 @@ void VideoStreamer::ThreadLoop() {
       continue;
     }
 
-    const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, true);
+    // TODO: IDR only at the moment.
+    bool send_idr = true || resync_requested || !vstrm_inited;
+    const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, send_idr);
     u32 timestamp = get_timestamp();
-    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp,
+    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp, send_idr,
                          &vstrm_inited, &vstrm_seqid);
     GenerateAstrmPacket(&astrm_packet, timestamp);
 
-    // TODO: this ignores TSF drifting issues.
-    sleep_time.tv_nsec = 16666667;
+    if (resync_requested) {
+      // TODO: not working
+      //sleep_time.tv_nsec = 0;
+    } else {
+      // TODO: this ignores TSF drifting issues.
+      sleep_time.tv_nsec = 16666667;
+    }
+
+    vstrm_inited = true;
   }
 }
 

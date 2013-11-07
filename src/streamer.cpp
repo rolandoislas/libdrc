@@ -21,7 +21,7 @@ Streamer::~Streamer() {
 bool Streamer::Start() {
   msg_server_->SetReceiveCallback(
       [=](const std::vector<byte>& msg) {
-        if (msg.size() == 4 && memcmp(msg.data(), "\1\0\0\0", 4)) {
+        if (msg.size() == 4 && !memcmp(msg.data(), "\1\0\0\0", 4)) {
           vid_streamer_->ResyncStream();
         }
         return true;

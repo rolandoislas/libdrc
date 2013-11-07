@@ -40,7 +40,6 @@ void H264Encoder::CreateEncoder() {
 
   // The following two lines make x264 output 1 IDR and then all P.
   param.i_keyint_min = param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
-  param.i_keyint_max = 20;
 
   param.i_scenecut_threshold = -1;
   param.i_csp = X264_CSP_I420;
