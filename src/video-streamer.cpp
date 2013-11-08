@@ -79,7 +79,7 @@ void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
       pkt->SetFrameRate(VstrmFrameRate::k59_94Hz); // TODO
 
       first_packet = false;
-    } while (chunk_size >= kMaxVstrmPayloadSize);
+    } while (chunk_size != 0);
   }
 }
 
@@ -164,12 +164,11 @@ void VideoStreamer::ResyncStream() {
 void VideoStreamer::ThreadLoop() {
   pollfd events[] = {
     { stop_event_fd_, POLLIN, 0 },
-    //{ resync_event_fd_, POLLIN, 0 },
+    { resync_event_fd_, POLLIN, 0 },
   };
   size_t nfds = sizeof (events) / sizeof (events[0]);
 
   std::vector<byte> encoding_frame;
-  timespec sleep_time = { 0, 0 };
 
   bool vstrm_inited = false;
   u16 vstrm_seqid = 0;
@@ -178,9 +177,22 @@ void VideoStreamer::ThreadLoop() {
   u16 astrm_seqid = 0;
   AstrmPacket astrm_packet;
   while (true) {
+    timespec sleep_time = { 0, 0 };
     if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
       break;
     }
+
+    // TODO: this timing here makes no sense. We're basically one frame late
+    // the whole time.
+    u64 timestamp = get_timestamp();
+    static u64 old_timestamp = 0;
+    if (old_timestamp) {
+      // TODO: why is 16667 not ok here? :(
+      while (timestamp - old_timestamp < 16500) {
+        timestamp = get_timestamp();
+      }
+    }
+    old_timestamp = timestamp;
 
     bool stop_requested = false;
     bool resync_requested = false;
@@ -211,20 +223,11 @@ void VideoStreamer::ThreadLoop() {
     }
 
     // TODO: IDR only at the moment.
-    bool send_idr = true || resync_requested || !vstrm_inited;
+    bool send_idr = resync_requested || !vstrm_inited;
     const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, send_idr);
-    u32 timestamp = get_timestamp();
-    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp, send_idr,
+    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp & 0xffffffff, send_idr,
                          &vstrm_inited, &vstrm_seqid);
     GenerateAstrmPacket(&astrm_packet, timestamp);
-
-    if (resync_requested) {
-      // TODO: not working
-      //sleep_time.tv_nsec = 0;
-    } else {
-      // TODO: this ignores TSF drifting issues.
-      sleep_time.tv_nsec = 16666667;
-    }
 
     vstrm_inited = true;
   }
