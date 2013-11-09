@@ -22,7 +22,7 @@ namespace {
 u32 get_timestamp() {
   static int fd = -1;
   if (fd == -1) {
-    fd = open("/sys/class/net/wlan1/device/tsf", O_RDONLY);
+    fd = open("/sys/class/net/wlan0/device/tsf", O_RDONLY);
   }
   u64 ts = 0;
   read(fd, &ts, sizeof (ts));
@@ -176,23 +176,18 @@ void VideoStreamer::ThreadLoop() {
 
   u16 astrm_seqid = 0;
   AstrmPacket astrm_packet;
+  u32 timebase = get_timestamp();
   while (true) {
     timespec sleep_time = { 0, 0 };
     if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
       break;
     }
 
-    // TODO: this timing here makes no sense. We're basically one frame late
-    // the whole time.
-    u64 timestamp = get_timestamp();
-    static u64 old_timestamp = 0;
-    if (old_timestamp) {
-      // TODO: why is 16667 not ok here? :(
-      while (timestamp - old_timestamp < 16500) {
-        timestamp = get_timestamp();
-      }
+    u32 timestamp = get_timestamp();
+    while (timestamp - timebase > static_cast<u32>(1000000.0/59.94)) {
+      timestamp = get_timestamp();
     }
-    old_timestamp = timestamp;
+    timebase += static_cast<u32>(1000000.0/59.94);
 
     bool stop_requested = false;
     bool resync_requested = false;
