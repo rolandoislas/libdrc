@@ -7,6 +7,7 @@ enum class PixelFormat {
   kRGBA,
   kBGR,
   kBGRA,
+  kRGB565,
 };
 
 }  // namespace drc

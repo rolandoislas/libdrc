@@ -17,6 +17,7 @@ enum drc_pixel_format {
   DRC_RGBA,
   DRC_BGR,
   DRC_BGRA,
+  DRC_RGB565,
 };
 
 struct drc_streamer* drc_new_streamer();

@@ -22,6 +22,7 @@ AVPixelFormat ConvertPixFmt(PixelFormat pixfmt) {
     case PixelFormat::kRGBA: return AV_PIX_FMT_RGBA;
     case PixelFormat::kBGR: return AV_PIX_FMT_BGR24;
     case PixelFormat::kBGRA: return AV_PIX_FMT_BGRA;
+    case PixelFormat::kRGB565: return AV_PIX_FMT_RGB565;
     default: assert(false && "Invalid PixelFormat value");
   }
 }
@@ -33,6 +34,7 @@ std::array<const byte*, 4> GetPixFmtPlanes(PixelFormat pixfmt,
     case PixelFormat::kRGBA:
     case PixelFormat::kBGR:
     case PixelFormat::kBGRA:
+    case PixelFormat::kRGB565:
       return {data, NULL, NULL, NULL};
     default:
       assert(false && "Invalid PixelFormat value");
@@ -41,6 +43,8 @@ std::array<const byte*, 4> GetPixFmtPlanes(PixelFormat pixfmt,
 std::array<int, 4> GetPixFmtStrides(PixelFormat pixfmt, u16 width,
                                     u16 height) {
   switch (pixfmt) {
+    case PixelFormat::kRGB565:
+      return {width * 2, 0, 0, 0};
     case PixelFormat::kRGB:
     case PixelFormat::kBGR:
       return {width * 3, 0, 0, 0};
@@ -54,6 +58,7 @@ std::array<int, 4> GetPixFmtStrides(PixelFormat pixfmt, u16 width,
 
 std::array<int, 4> GetPixFmtHeights(PixelFormat pixfmt, u16 height) {
   switch (pixfmt) {
+    case PixelFormat::kRGB565:
     case PixelFormat::kRGB:
     case PixelFormat::kBGR:
     case PixelFormat::kRGBA:
