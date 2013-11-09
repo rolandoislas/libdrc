@@ -38,6 +38,8 @@ void H264Encoder::CreateEncoder() {
   param.i_width = kScreenWidth;
   param.i_height = kScreenHeight;
 
+  param.analyse.inter &= ~X264_ANALYSE_PSUB16x16;
+
   // The following two lines make x264 output 1 IDR and then all P.
   param.i_keyint_min = param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
 
