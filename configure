@@ -1,0 +1,115 @@
+#! /usr/bin/env bash
+
+TMPDIR=`mktemp -d`
+trap "rm -rf $TMPDIR" EXIT
+
+usage() {
+    cat >&2 <<EOF
+usage: $0 [flags]
+
+Help Options:
+  -h, --help                Show help options
+
+Build Configuration:
+  --cxx                     C++ compiler that should be used.
+  --prefix                  Installation path of the library.
+  --enable-demos            Build libdrc demos.
+  --disable-demos
+EOF
+    exit 0
+}
+
+# Options parsing
+# Default values
+CXX=g++
+PREFIX=/usr/local
+DEMOS=y
+for arg; do
+    case $arg in
+        "--cxx="*)
+            CXX=${arg#*=};;
+        "--prefix="*)
+            PREFIX=${arg#*=};;
+        "--enable-demos")
+            DEMOS=y;;
+        "--disable-demos")
+            DEMOS=n;;
+        "-h"|"--help")
+            usage;;
+        *)
+            echo >&2 "error: unknown option $arg"
+            usage;;
+    esac
+done
+
+CXXFLAGS="-fPIC -I include -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -std=gnu++11 $CXXFLAGS"
+
+# Libraries detection utils
+lib_present() {
+    pkg-config --exists $@
+}
+lib_cflags() {
+    pkg-config --cflags $@
+}
+lib_ldflags() {
+    pkg-config --libs $@
+}
+
+# Check required dependencies
+DEPS="libswscale x264"
+if lib_present "$DEPS"; then
+    CXXFLAGS+=$(lib_cflags $DEPS)
+    LDFLAGS+=$(lib_ldflags $DEPS)
+else
+    echo 2>&1 "error: missing one of the required dependencies ($DEPS)"
+    exit 1
+fi
+
+# Check if x264 is patched for libdrc support.
+cat >$TMPDIR/test.cpp <<EOF
+#include <stdint.h>
+#include <x264.h>
+
+int main(void) {
+  x264_param_t p;
+  p.b_drh_mode = 1;
+  (void)p;
+  return 0;
+}
+EOF
+if ! $CXX $CXXFLAGS -c $TMPDIR/test.cpp; then
+    echo 2>&1 "error: could not compile a test x264 C++ source file"
+    echo 2>&1 "error: this usually means pkg-config is not finding the patched x264 version - check PKG_CONFIG_PATH"
+    exit 1
+fi
+
+# Build demos only if we have the required libs installed
+DEMOS_DEPS="gl glu glew sdl"
+if [ x"$DEMOS" = x"y" ]; then
+    if lib_present $DEMOS_DEPS; then
+        CXXFLAGS+=$(lib_cflags $DEMOS_DEPS)
+        LDFLAGS_DEMOS=$(lib_ldflags $DEMOS_DEPS)
+    else
+        echo 2>&1 "error: demos cannot be built because one of the dependencies ($DEMOS_DEPS) could not be found"
+        echo 2>&1 "error: demos build can be disabled with --disable-demos"
+        exit 1
+    fi
+fi
+
+# Show a summary to the user
+cat <<EOF
+Summary:
+  Installation prefix: $PREFIX
+  Build demos: $DEMOS
+
+Run 'make' to build libdrc.
+EOF
+
+# Output generation
+cat >Makefile.config <<EOF
+PREFIX:=$PREFIX
+DEMOS:=$DEMOS
+CXXFLAGS:=$CXXFLAGS
+LDFLAGS:=$LDFLAGS
+LDFLAGS_DEMOS:=$LDFLAGS_DEMOS
+EOF
