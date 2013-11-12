@@ -77,7 +77,7 @@ int main(void) {
   return 0;
 }
 EOF
-if ! $CXX $CXXFLAGS -c $TMPDIR/test.cpp; then
+if ! $CXX $CXXFLAGS -c $TMPDIR/test.cpp -o $TMPDIR/test.o; then
     echo 2>&1 "error: could not compile a test x264 C++ source file"
     echo 2>&1 "error: this usually means pkg-config is not finding the patched x264 version - check PKG_CONFIG_PATH"
     exit 1
