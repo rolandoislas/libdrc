@@ -23,6 +23,7 @@ Minor priority
   spawning a new thread every frame.
 
 * Detect the wlan interface used to get the TSF instead of hardcoding it.
+  -- some preliminary (linux-only) support for this in tsf_linux.c
 
 * Gamepad mode
 
