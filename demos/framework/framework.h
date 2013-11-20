@@ -11,7 +11,8 @@ class Streamer;
 namespace demo {
 
 enum DemoMode {
-  kStreamerDemo,
+  kStreamerGLDemo,
+  kStreamerSDLDemo,
   kReceiverDemo,
 };
 
@@ -24,7 +25,7 @@ drc::Streamer* GetStreamer();
 bool HandleEvents();
 
 std::vector<drc::u8> TryReadbackFromGL();
-void TryPushingFrame();
+void TryPushingGLFrame();
 
 void SwapBuffers(int fps_limit = 60);
 

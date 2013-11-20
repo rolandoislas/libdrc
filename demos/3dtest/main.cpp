@@ -93,13 +93,13 @@ void RenderFrame(const drc::InputData& input_data) {
 }  // namespace
 
 int main() {
-  demo::Init("3dtest", demo::kStreamerDemo);
+  demo::Init("3dtest", demo::kStreamerGLDemo);
 
   InitRendering();
 
   drc::InputData input_data;
   while (demo::HandleEvents()) {
-    demo::TryPushingFrame();
+    demo::TryPushingGLFrame();
 
     demo::GetInputReceiver()->Poll(input_data);
     RenderFrame(input_data);

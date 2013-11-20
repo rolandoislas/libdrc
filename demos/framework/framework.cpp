@@ -21,7 +21,7 @@ void Init(const char* name, DemoMode mode) {
   std::string win_title = "libdrc demo - ";
   win_title += name;
 
-  if (mode == kStreamerDemo) {
+  if (mode == kStreamerGLDemo || mode == kStreamerSDLDemo) {
     g_input_receiver = new drc::InputReceiver();
     if (!g_input_receiver->Start()) {
       puts("Unable to start input receiver");
@@ -39,13 +39,20 @@ void Init(const char* name, DemoMode mode) {
   }
 
   SDL_Init(SDL_INIT_VIDEO);
-  SDL_SetVideoMode(drc::kScreenWidth, drc::kScreenHeight, 32, SDL_OPENGL);
+  int flags = SDL_HWSURFACE | SDL_DOUBLEBUF;
+  if (mode == kStreamerGLDemo) {
+    flags |= SDL_OPENGL;
+  }
+  SDL_SetVideoMode(drc::kScreenWidth, drc::kScreenHeight, 32, flags);
   SDL_WM_SetCaption(win_title.c_str(), NULL);
-  glewInit();
 
-  if (!GLEW_ARB_pixel_buffer_object) {
-    puts("Missing OpenGL extension: ARB_pixel_buffer_object");
-    exit(1);
+  if (mode == kStreamerGLDemo) {
+    glewInit();
+
+    if (!GLEW_ARB_pixel_buffer_object) {
+      puts("Missing OpenGL extension: ARB_pixel_buffer_object");
+      exit(1);
+    }
   }
 }
 
@@ -97,7 +104,7 @@ std::vector<drc::u8> TryReadbackFromGL() {
   return ret;
 }
 
-void TryPushingFrame() {
+void TryPushingGLFrame() {
   if (!g_streamer) {
     puts("Streamer not initialized, can't push a frame");
     exit(1);
@@ -125,7 +132,12 @@ void TryPushingFrame() {
 }
 
 void SwapBuffers(int fps_limit) {
-  SDL_GL_SwapBuffers();
+  SDL_Surface* screen = SDL_GetVideoSurface();
+
+  SDL_Flip(screen);
+  if (screen->flags & SDL_OPENGL) {
+    SDL_GL_SwapBuffers();
+  }
 
   if (fps_limit == 0)
     return;
