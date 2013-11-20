@@ -48,6 +48,12 @@ struct InputData {
   float right_stick_x;
   float right_stick_y;
 
+  // Touchscreen data. Range: 0.0 to 1.0.
+  bool ts_pressed;
+  float ts_x;
+  float ts_y;
+  float ts_pressure;
+
   u8 battery_charge;
   u8 audio_volume;
 

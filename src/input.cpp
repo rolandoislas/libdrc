@@ -93,6 +93,32 @@ bool InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
     }
   }
 
+  // Read touchscreen points and average.
+  float ts_x = 0, ts_y = 0;
+  const int kTsPointsCount = 10;
+  for (int i = 0; i < kTsPointsCount; ++i) {
+    int base = 36 + 4 * i;
+
+    int x = ((msg[base + 1] & 0xF) << 8) | msg[base];
+    int y = ((msg[base + 3] & 0xF) << 8) | msg[base + 2];
+
+    ts_x += x / 4096.0;
+    ts_y += y / 4096.0;
+  }
+  data.ts_x = ts_x / kTsPointsCount;
+  data.ts_y = ts_y / kTsPointsCount;
+
+  // Read touchscreen pressure intensity.
+  int ts_pressure = 0;
+  ts_pressure |= ((msg[37] >> 4) & 7) << 0;
+  ts_pressure |= ((msg[39] >> 4) & 7) << 3;
+  ts_pressure |= ((msg[41] >> 4) & 7) << 6;
+  ts_pressure |= ((msg[43] >> 4) & 7) << 9;
+
+  // TODO: make meaningful
+  data.ts_pressure = ts_pressure;
+  data.ts_pressed = (ts_pressure != 0);
+
   data.battery_charge = msg[5];
   data.audio_volume = msg[14];
   data.power_status = static_cast<InputData::PowerStatus>(msg[4]);

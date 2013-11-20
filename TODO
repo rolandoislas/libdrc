@@ -10,8 +10,6 @@ Major priority
 
 * Gamepad mode
 
-* Basic touchscreen handling
-
 * Build system improvements
   * pkg-config .pc file
   * make install support
@@ -40,3 +38,5 @@ Minor priority
   init/shutdown of several instances more easily.
 
 * Using touchscreen calibration data from the UIC EEPROM (is it stored there?)
+
+* Touchscreen pressure handling (see the TSC2046 datasheet for formulas)
