@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <drc/internal/astrm-packet.h>
 #include <drc/internal/h264-encoder.h>
+#include <drc/internal/tsf.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/internal/vstrm-packet.h>
@@ -18,16 +19,10 @@ namespace drc {
 
 namespace {
 
-// TODO: that's not clean at all.
-u32 get_timestamp() {
-  static int fd = -1;
-  if (fd == -1) {
-    fd = open("/sys/class/net/wlan0/device/tsf", O_RDONLY);
-  }
-  u64 ts = 0;
-  read(fd, &ts, sizeof (ts));
-  lseek(fd, 0, SEEK_SET);
-  return ts & 0xFFFFFFFF;
+u32 GetTimestamp() {
+  u64 tsf;
+  GetTsf(&tsf);
+  return tsf & 0xFFFFFFFF;
 }
 
 void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
@@ -176,16 +171,16 @@ void VideoStreamer::ThreadLoop() {
 
   u16 astrm_seqid = 0;
   AstrmPacket astrm_packet;
-  u32 timebase = get_timestamp();
+  u32 timebase = GetTimestamp();
   while (true) {
     timespec sleep_time = { 0, 0 };
     if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
       break;
     }
 
-    u32 timestamp = get_timestamp();
+    u32 timestamp = GetTimestamp();
     while (timestamp - timebase > static_cast<u32>(1000000.0/59.94)) {
-      timestamp = get_timestamp();
+      timestamp = GetTimestamp();
     }
     timebase += static_cast<u32>(1000000.0/59.94);
 

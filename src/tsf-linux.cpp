@@ -1,30 +1,26 @@
 #include <fcntl.h>
+#include <drc/types.h>
 #include <ifaddrs.h>
 #include <netdb.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <string>
-
-#include <drc/types.h>
-
-#ifdef GHETTO_TEST
-#include <cassert>
-#include <cstdio>
-#endif  // GHETTO_TEST
-
 namespace drc {
 
-namespace  {
-int get_interface_of_ipv4(const std::string &addr, std::string *out) {
-  struct ifaddrs *ifa, *p;
+namespace {
+
+int GetInterfaceOfIpv4(const std::string& addr, std::string* out) {
+  struct ifaddrs* ifa;
+  struct ifaddrs* p;
   char ip_buffer[16];
   int rv = EAI_FAIL;
 
-  if (getifaddrs(&ifa) == -1) return rv;
-  if (ifa == NULL) return rv;
+  if (getifaddrs(&ifa) == -1 || ifa == NULL) {
+    return rv;
+  }
 
   p = ifa;
   while (p) {
@@ -33,8 +29,9 @@ int get_interface_of_ipv4(const std::string &addr, std::string *out) {
         rv = getnameinfo(p->ifa_addr, sizeof(struct sockaddr_in), ip_buffer,
                          sizeof(ip_buffer), NULL, 0, NI_NUMERICHOST);
         if (rv == 0) {
-          if (addr == ip_buffer)
+          if (addr == ip_buffer) {
             break;
+          }
         }
       }
     }
@@ -48,19 +45,20 @@ int get_interface_of_ipv4(const std::string &addr, std::string *out) {
   }
 
   freeifaddrs(ifa);
-
   return rv;
 }
 
 }  // namespace
 
-
-int get_tsf(u64 *tsf) {
+int GetTsf(u64 *tsf) {
   static int fd = -1;
+
   if (fd == -1) {
     std::string drc_if;
-    if (get_interface_of_ipv4("192.168.1.10", &drc_if) == 0) {
-      std::string tsf_path = std::string("/sys/class/net/") + drc_if + "/tsf";
+
+    if (GetInterfaceOfIpv4("192.168.1.10", &drc_if) == 0) {
+      std::string tsf_path = std::string("/sys/class/net/") + drc_if +
+                             "/device/tsf";
       fd = open(tsf_path.c_str(), O_RDONLY);
     }
 
@@ -73,36 +71,3 @@ int get_tsf(u64 *tsf) {
 }
 
 }  // namespace drc
-
-
-
-#ifdef GHETTO_TEST
-
-int main() {
-  std::string iface;
-  int rv;
-  drc::u64 tsf;
-
-  rv = drc::get_interface_of_ipv4("127.0.0.1", &iface);
-  assert(rv == 0);
-  assert(iface == "lo");
-
-  rv = drc::get_interface_of_ipv4("0.0.0.0", &iface);
-  assert(rv != 0);
-
-  rv = drc::get_interface_of_ipv4("192.168.1.10", &iface);
-  if (rv != 0) {
-    std::printf("could not find local ip 192.168.1.10; is this machine "
-                "connected to drc?\n");
-  } else {
-    rv = drc::get_tsf(&tsf);
-    if (rv != 0) {
-      std::printf("could not get tsf; is the kernel patch installed?\n");
-    }
-  }
-  return 0;
-}
-
-
-#endif  // GHETTO_TEST
-
