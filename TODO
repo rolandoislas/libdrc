@@ -4,20 +4,31 @@ Major priority
 * Provide a timer class that bases itself off the TSF and provides a sub-100us
   accuracy while resyncing regularly to handle TSF drifting.
 
-* Encode and stream video.
-
-* Implement PBO readback (take the code from the current drcstream codebase)
+* Fix timing randomly desyncing.
 
 * Provide an interface for audio streaming
 
-* Very light C wrapper for drc::Streamer that would allow C applications to use
-  libdrc.
+* Gamepad mode
+
+* Basic touchscreen handling
+
+* Build system improvements
+  * pkg-config .pc file
+  * make install support
 
 Minor priority
 --------------
 
+* "Keep aspect ratio" option for frame converter (black bars).
+
+* Find the macroblock type causing random corruptions on PC->DRC video data.
+
+* Accelerometer/Gyro/Compass data support
+
 * Proper event handling class that could be used on both Win/Lin to replace the
   current eventfd/ppoll code.
+
+* Implement PBO readback (take the code from the current drcstream codebase)
 
 * Use one single thread for the video converter instead of having std::async
   spawning a new thread every frame.
@@ -25,7 +36,7 @@ Minor priority
 * Detect the wlan interface used to get the TSF instead of hardcoding it.
   -- some preliminary (linux-only) support for this in tsf_linux.c
 
-* Gamepad mode
-
 * Think about a startable/stoppable interface to be able to perform
   init/shutdown of several instances more easily.
+
+* Using touchscreen calibration data from the UIC EEPROM (is it stored there?)
