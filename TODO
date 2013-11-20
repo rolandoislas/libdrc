@@ -10,10 +10,6 @@ Major priority
 
 * Gamepad mode
 
-* Build system improvements
-  * pkg-config .pc file
-  * make install support
-
 Minor priority
 --------------
 

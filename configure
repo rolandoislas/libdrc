@@ -127,3 +127,6 @@ CXXFLAGS:=$CXXFLAGS
 LDFLAGS:=$LDFLAGS
 LDFLAGS_DEMOS:=$LDFLAGS_DEMOS
 EOF
+
+cp libdrc.pc.in libdrc.pc
+sed -i "s,@@PREFIX@@,$PREFIX," libdrc.pc

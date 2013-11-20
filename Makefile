@@ -39,10 +39,15 @@ clean:
 	rm -f $(ALL_OBJS)
 
 distclean: clean
-	rm -f .depend Makefile.config libdrc.a libdrc.so $(DEMOS_BINS)
+	rm -f .depend libdrc.pc Makefile.config libdrc.a libdrc.so $(DEMOS_BINS)
 
-install:
-	@echo TODO
+install: all
+	install -D libdrc.a libdrc.so $(PREFIX)/lib
+	install -D libdrc.pc $(PREFIX)/lib/pkgconfig
+	install -d $(PREFIX)/include/drc
+	cp include/drc/* $(PREFIX)/include/drc || true
+	install -d $(PREFIX)/include/drc/c
+	cp include/drc/c/* $(PREFIX)/include/drc/c || true
 
 uninstall:
 	@echo TODO
