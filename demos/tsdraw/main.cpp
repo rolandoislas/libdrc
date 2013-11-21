@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
     RenderFrame(surface, input_data);
     SDL_UnlockSurface(surface);
 
-    demo::SwapBuffers(180);
+    demo::SwapBuffers();
   }
 
   demo::Quit();
