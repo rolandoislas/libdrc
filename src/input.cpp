@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <drc/input.h>
 #include <drc/internal/udp.h>
 #include <functional>
@@ -22,6 +23,10 @@ const float kStickDeadZone = 0.1;
 
 InputReceiver::InputReceiver(const std::string& hid_bind)
     : server_(new UdpServer(hid_bind)) {
+
+  // TODO: these are the values from delroth's DRC. Make it use those from the
+  // UIC EEPROM.
+  CalibrateWithPoints(329, 3672, 3738, 403, 53, 30, 802, 451);
 }
 
 InputReceiver::~InputReceiver() {
@@ -53,6 +58,18 @@ void InputReceiver::Stop() {
 void InputReceiver::Poll(InputData& data) {
   std::lock_guard<std::mutex> lk(current_mutex_);
   data = current_;
+}
+
+void InputReceiver::CalibrateWithPoints(
+    s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
+    s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y) {
+  ts_ox_ = (float)(raw_2_x * ref_1_x - raw_1_x * ref_2_x) /
+                  (raw_2_x - raw_1_x);
+  ts_w_ = (float)(ref_1_x - ref_2_x) / (raw_1_x - raw_2_x);
+
+  ts_oy_ = (float)(raw_2_y * ref_1_y - raw_1_y * ref_2_y) /
+                  (raw_2_y - raw_1_y);
+  ts_h_ = (float)(ref_1_y - ref_2_y) / (raw_1_y - raw_2_y);
 }
 
 void InputReceiver::SetCurrent(const InputData& new_current) {
@@ -94,19 +111,21 @@ bool InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
   }
 
   // Read touchscreen points and average.
-  float ts_x = 0, ts_y = 0;
+  int ts_x = 0, ts_y = 0;
   const int kTsPointsCount = 10;
   for (int i = 0; i < kTsPointsCount; ++i) {
     int base = 36 + 4 * i;
 
-    int x = ((msg[base + 1] & 0xF) << 8) | msg[base];
-    int y = ((msg[base + 3] & 0xF) << 8) | msg[base + 2];
-
-    ts_x += x / 4096.0;
-    ts_y += y / 4096.0;
+    ts_x += ((msg[base + 1] & 0xF) << 8) | msg[base];
+    ts_y += ((msg[base + 3] & 0xF) << 8) | msg[base + 2];
   }
-  data.ts_x = ts_x / kTsPointsCount;
-  data.ts_y = ts_y / kTsPointsCount;
+  ts_x /= kTsPointsCount;
+  ts_y /= kTsPointsCount;
+
+  // Use the calibration values to convert to (0, 854) / (0, 480) then
+  // normalize to (0, 1).
+  data.ts_x = std::max(0.0, std::min(1.0, (ts_ox_ + ts_x * ts_w_) / 853.0));
+  data.ts_y = std::max(0.0, std::min(1.0, (ts_oy_ + ts_y * ts_h_) / 479.0));
 
   // Read touchscreen pressure intensity.
   int ts_pressure = 0;

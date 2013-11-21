@@ -121,9 +121,8 @@ void RenderFrame(SDL_Surface* surface, const drc::InputData& input_data) {
   if (input_data.buttons & drc::InputData::kBtnA) {
     memset(pixels, 0, 4 * drc::kScreenWidth * drc::kScreenHeight);
   } else if (input_data.ts_pressed) {
-    int x = static_cast<int>(input_data.ts_x * drc::kScreenWidth);
-    int y = static_cast<int>(input_data.ts_y * drc::kScreenHeight);
-    y = drc::kScreenHeight - y;
+    int x = static_cast<int>(input_data.ts_x * (drc::kScreenWidth - 1));
+    int y = static_cast<int>(input_data.ts_y * (drc::kScreenHeight - 1));
 
     if (has_previous_point) {
       DrawLine(pixels, x, y, previous_point_x, previous_point_y,

@@ -77,6 +77,9 @@ class InputReceiver {
 
   void Poll(InputData& data);
 
+  void CalibrateWithPoints(s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
+                           s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y);
+
  private:
   void SetCurrent(const InputData& new_current);
 
@@ -87,6 +90,9 @@ class InputReceiver {
 
   InputData current_;
   std::mutex current_mutex_;
+
+  // Touchscreen calibration parameters.
+  float ts_ox_, ts_oy_, ts_w_, ts_h_;
 };
 
 }  // namespace drc

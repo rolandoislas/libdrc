@@ -33,6 +33,6 @@ Minor priority
 * Think about a startable/stoppable interface to be able to perform
   init/shutdown of several instances more easily.
 
-* Using touchscreen calibration data from the UIC EEPROM (is it stored there?)
+* Using touchscreen calibration data from the UIC EEPROM.
 
 * Touchscreen pressure handling (see the TSC2046 datasheet for formulas)
