@@ -19,10 +19,10 @@ namespace drc {
 
 namespace {
 
-u32 GetTimestamp() {
+s32 GetTimestamp() {
   u64 tsf;
   GetTsf(&tsf);
-  return tsf & 0xFFFFFFFF;
+  return static_cast<s32>(tsf & 0xFFFFFFFF);
 }
 
 void GenerateVstrmPackets(std::vector<VstrmPacket>* vstrm_packets,
@@ -171,18 +171,19 @@ void VideoStreamer::ThreadLoop() {
 
   u16 astrm_seqid = 0;
   AstrmPacket astrm_packet;
-  u32 timebase = GetTimestamp();
+  s32 timebase = GetTimestamp();
   while (true) {
     timespec sleep_time = { 0, 0 };
     if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
       break;
     }
 
-    u32 timestamp = GetTimestamp();
-    while ((s32)timebase - (s32)timestamp > 0) {
+    s32 timestamp = GetTimestamp();
+    if (timebase - timestamp > 0) {
+      usleep(timebase - timestamp);
       timestamp = GetTimestamp();
     }
-    timebase += static_cast<u32>(1000000.0/59.94);
+    timebase += static_cast<s32>(1000000.0/59.94);
 
     bool stop_requested = false;
     bool resync_requested = false;
@@ -215,7 +216,7 @@ void VideoStreamer::ThreadLoop() {
     // TODO: IDR only at the moment.
     bool send_idr = resync_requested || !vstrm_inited;
     const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, send_idr);
-    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp & 0xffffffff, send_idr,
+    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp, send_idr,
                          &vstrm_inited, &vstrm_seqid);
     GenerateAstrmPacket(&astrm_packet, timestamp);
 
