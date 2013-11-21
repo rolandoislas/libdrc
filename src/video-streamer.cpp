@@ -179,7 +179,7 @@ void VideoStreamer::ThreadLoop() {
     }
 
     u32 timestamp = GetTimestamp();
-    while (timestamp - timebase > static_cast<u32>(1000000.0/59.94)) {
+    while ((s32)timebase - (s32)timestamp > 0) {
       timestamp = GetTimestamp();
     }
     timebase += static_cast<u32>(1000000.0/59.94);
