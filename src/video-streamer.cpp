@@ -1,12 +1,12 @@
 #include <algorithm>
 #include <cstdio>
-#include <fcntl.h>
 #include <drc/internal/astrm-packet.h>
 #include <drc/internal/h264-encoder.h>
 #include <drc/internal/tsf.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/internal/vstrm-packet.h>
+#include <fcntl.h>
 #include <mutex>
 #include <poll.h>
 #include <string>
@@ -136,10 +136,12 @@ void VideoStreamer::Stop() {
     streaming_thread_.join();
 
     close(stop_event_fd_);
+    stop_event_fd_ = -1;
   }
 
   if (resync_event_fd_ != -1) {
     close(resync_event_fd_);
+    resync_event_fd_ = -1;
   }
 
   astrm_client_->Stop();
@@ -169,7 +171,6 @@ void VideoStreamer::ThreadLoop() {
   u16 vstrm_seqid = 0;
   std::vector<VstrmPacket> vstrm_packets;
 
-  u16 astrm_seqid = 0;
   AstrmPacket astrm_packet;
   s32 timebase = GetTimestamp();
   while (true) {

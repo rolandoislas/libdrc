@@ -8,6 +8,7 @@
 
 namespace drc {
 
+class AudioStreamer;
 class VideoConverter;
 class VideoStreamer;
 class UdpServer;
@@ -27,7 +28,6 @@ class Streamer {
   void Stop();
 
   // Takes ownership of the frame.
-
   enum FlippingMode {
     NoFlip,
     FlipVertically
@@ -41,9 +41,13 @@ class Streamer {
   // Faster: PushVidFrame requires pixel format conversion before encoding.
   void PushNativeVidFrame(std::vector<u8>& frame);
 
+  // Expects 48KHz samples.
+  void PushAudSamples(const std::vector<s16>& samples);
+
  private:
   std::unique_ptr<UdpServer> msg_server_;
 
+  std::unique_ptr<AudioStreamer> aud_streamer_;
   std::unique_ptr<VideoConverter> vid_converter_;
   std::unique_ptr<VideoStreamer> vid_streamer_;
 };

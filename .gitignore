@@ -4,5 +4,6 @@ libdrc.so
 Makefile.config
 demos/3dtest/3dtest
 demos/tsdraw/tsdraw
+demos/simpleaudio/simpleaudio
 .depend
 libdrc.pc

@@ -4,7 +4,7 @@ LIBDRC_SRCS:=$(wildcard src/*.cpp)
 LIBDRC_OBJS:=$(LIBDRC_SRCS:.cpp=.o)
 
 ifeq ($(DEMOS),y)
-DEMOS_NAMES:=3dtest tsdraw
+DEMOS_NAMES:=3dtest tsdraw simpleaudio
 DEMOS_SRCS:=demos/framework/framework.cpp \
             $(foreach d,$(DEMOS_NAMES),demos/$(d)/main.cpp)
 DEMOS_BINS:=$(foreach d,$(DEMOS_NAMES),demos/$(d)/$(d))

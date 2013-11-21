@@ -1,4 +1,5 @@
 #include <cstring>
+#include <drc/internal/audio-streamer.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-converter.h>
 #include <drc/internal/video-streamer.h>
@@ -11,6 +12,7 @@ Streamer::Streamer(const std::string& vid_dst,
                    const std::string& aud_dst,
                    const std::string& msg_bind) 
     : msg_server_(new UdpServer(msg_bind)),
+      aud_streamer_(new AudioStreamer(aud_dst)),
       vid_converter_(new VideoConverter()),
       vid_streamer_(new VideoStreamer(vid_dst, aud_dst)) {
 }
@@ -33,6 +35,7 @@ bool Streamer::Start() {
       });
 
   if (!msg_server_->Start() ||
+      !aud_streamer_->Start() ||
       !vid_converter_->Start() ||
       !vid_streamer_->Start()) {
     Stop();
@@ -43,6 +46,7 @@ bool Streamer::Start() {
 
 void Streamer::Stop() {
   msg_server_->Stop();
+  aud_streamer_->Stop();
   vid_converter_->Stop();
   vid_streamer_->Stop();
 }
@@ -56,6 +60,10 @@ void Streamer::PushVidFrame(std::vector<byte>& frame, u16 width, u16 height,
 
 void Streamer::PushNativeVidFrame(std::vector<byte>& frame) {
   vid_streamer_->PushFrame(frame);
+}
+
+void Streamer::PushAudSamples(const std::vector<s16>& samples) {
+  aud_streamer_->PushSamples(samples);
 }
 
 }  // namespace drc

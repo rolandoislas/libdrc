@@ -6,8 +6,6 @@ Major priority
 
 * Fix timing randomly desyncing.
 
-* Provide an interface for audio streaming
-
 * Gamepad mode
 
 Minor priority
@@ -36,3 +34,6 @@ Minor priority
 * Using touchscreen calibration data from the UIC EEPROM.
 
 * Touchscreen pressure handling (see the TSC2046 datasheet for formulas)
+
+* Use condition variables in the audio streamer instead of continuously polling
+  if we are in underflow condition.
