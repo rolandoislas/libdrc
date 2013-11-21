@@ -44,10 +44,8 @@ distclean: clean
 install: all
 	install -D libdrc.a libdrc.so $(PREFIX)/lib
 	install -D libdrc.pc $(PREFIX)/lib/pkgconfig
-	install -d $(PREFIX)/include/drc
-	cp include/drc/* $(PREFIX)/include/drc || true
-	install -d $(PREFIX)/include/drc/c
-	cp include/drc/c/* $(PREFIX)/include/drc/c || true
+	install -D include/drc/*.h $(PREFIX)/include/drc
+	install -D include/drc/c/*.h $(PREFIX)/include/drc/c
 
 uninstall:
 	@echo TODO
