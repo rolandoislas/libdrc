@@ -51,3 +51,5 @@ Minor priority
   if we are in underflow condition.
 
 * Integrate drcuinput inside libdrc as some special input receiver/handler
+
+* Document the camera settings from UvcUacCmdPacket.
