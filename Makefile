@@ -42,10 +42,12 @@ distclean: clean
 	rm -f .depend libdrc.pc Makefile.config libdrc.a libdrc.so $(DEMOS_BINS)
 
 install: all
-	install -D libdrc.a libdrc.so $(PREFIX)/lib
-	install -D libdrc.pc $(PREFIX)/lib/pkgconfig
-	install -D include/drc/*.h $(PREFIX)/include/drc
-	install -D include/drc/c/*.h $(PREFIX)/include/drc/c
+	install -d $(PREFIX)/lib $(PREFIX)/lib/pkgconfig 
+	install -d $(PREFIX)/include/drc $(PREFIX)/include/drc/c
+	install libdrc.a libdrc.so $(PREFIX)/lib
+	install libdrc.pc $(PREFIX)/lib/pkgconfig
+	install include/drc/*.h $(PREFIX)/include/drc
+	install include/drc/c/*.h $(PREFIX)/include/drc/c
 
 uninstall:
 	@echo TODO
