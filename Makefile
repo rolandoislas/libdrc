@@ -26,7 +26,7 @@ libdrc.a: $(LIBDRC_OBJS)
 libdrc.so: $(LIBDRC_OBJS) Makefile.config
 	$(CXX) $(LDFLAGS) -shared -o $@ $(LIBDRC_OBJS)
 
-define build_demo =
+define build_demo
 demos/$(1)/$(1): demos/$(1)/main.o demos/framework/framework.o libdrc.a
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LDFLAGS_DEMOS)
 endef
