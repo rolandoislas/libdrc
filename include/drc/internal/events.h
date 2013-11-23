@@ -28,12 +28,17 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <thread>
+#include <unistd.h>
 
 namespace drc {
 
 struct Event {
   // Return true to keep the event, false to drop it.
   typedef std::function<bool(Event*)> CallbackType;
+
+  Event() : fd(-1) {}
+  ~Event() { if (fd != -1) close(fd); }
 
   int fd;
   int read_size;
@@ -58,16 +63,29 @@ class EventMachine {
   Event* NewSocketEvent(int fd, Event::CallbackType cb);
 
   void Start();
-  void Stop() { stop_evt_->Trigger(); }
+  void Stop() { if (running_) stop_evt_->Trigger(); }
   bool Running() { return running_; }
+
+ protected:
+  void ProcessEvents();
+  bool running_;
 
  private:
   Event* NewEvent(int fd, int read_size, bool oneshot, Event::CallbackType cb);
 
   int epoll_fd_;
-  bool running_;
   std::map<int, std::unique_ptr<Event>> events_;
   TriggerableEvent* stop_evt_;
+};
+
+// EventMachine that runs on a separate thread.
+class ThreadedEventMachine : public EventMachine {
+ public:
+  void Start();
+  void Stop();
+
+ private:
+  std::thread th_;
 };
 
 }  // namespace drc

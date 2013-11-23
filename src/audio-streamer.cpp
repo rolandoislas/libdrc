@@ -31,7 +31,6 @@
 #include <drc/types.h>
 #include <mutex>
 #include <string>
-#include <thread>
 
 namespace drc {
 
@@ -57,7 +56,8 @@ s32 GetTimestamp() {
 
 AudioStreamer::AudioStreamer(const std::string& dst)
     : astrm_client_(new UdpClient(dst)),
-      em_(new EventMachine()) {
+      seqid_(0),
+      em_(new ThreadedEventMachine()) {
 }
 
 AudioStreamer::~AudioStreamer() {
@@ -70,15 +70,31 @@ bool AudioStreamer::Start() {
     return false;
   }
 
-  streaming_thread_ = std::thread(&AudioStreamer::ThreadLoop, this);
+  em_->NewRepeatedTimerEvent(kPacketIntervalMs * 1000000, [&](Event*) {
+    std::vector<s16> samples;
+    PopSamples(samples, kSamplesPerPacket * 2);
+
+    AstrmPacket pkt;
+    pkt.SetPacketType(AstrmPacketType::kAudioData);
+    pkt.SetFormat(AstrmFormat::kPcm48KHz);
+    pkt.SetMonoFlag(false);
+    pkt.SetVibrateFlag(false);
+    pkt.SetSeqId(seqid_);
+    pkt.SetTimestamp(GetTimestamp());
+    pkt.SetPayload((byte*)samples.data(), samples.size() * 2);  // TODO: LE/BE
+
+    astrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
+    seqid_ = (seqid_ + 1) & 0x3FF;
+
+    return true;
+  });
+  em_->Start();
+
   return true;
 }
 
 void AudioStreamer::Stop() {
-  if (em_->Running()) {
-    em_->Stop();
-    streaming_thread_.join();
-  }
+  em_->Stop();
   astrm_client_->Stop();
 }
 
@@ -98,29 +114,6 @@ void AudioStreamer::PopSamples(std::vector<s16>& samples, u32 count) {
     samples.insert(samples.end(), samples_.begin(), samples_.begin() + count);
     samples_.erase(samples_.begin(), samples_.begin() + count);
   }
-}
-
-void AudioStreamer::ThreadLoop() {
-  u16 seqid = 0;
-  em_->NewRepeatedTimerEvent(kPacketIntervalMs * 1000000, [&](Event*) {
-    std::vector<s16> samples;
-    PopSamples(samples, kSamplesPerPacket * 2);
-
-    AstrmPacket pkt;
-    pkt.SetPacketType(AstrmPacketType::kAudioData);
-    pkt.SetFormat(AstrmFormat::kPcm48KHz);
-    pkt.SetMonoFlag(false);
-    pkt.SetVibrateFlag(false);
-    pkt.SetSeqId(seqid);
-    pkt.SetTimestamp(GetTimestamp());
-    pkt.SetPayload((byte*)samples.data(), samples.size() * 2);  // TODO: LE/BE
-
-    astrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
-    seqid = (seqid + 1) & 0x3FF;
-
-    return true;
-  });
-  em_->Start();
 }
 
 }  // namespace drc

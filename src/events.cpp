@@ -89,9 +89,13 @@ Event* EventMachine::NewSocketEvent(int fd, Event::CallbackType cb) {
 }
 
 void EventMachine::Start() {
+  running_ = true;
+  ProcessEvents();
+}
+
+void EventMachine::ProcessEvents() {
   std::array<struct epoll_event, 64> triggered;
 
-  running_ = true;
   while (running_) {
     int nfds = epoll_wait(epoll_fd_, triggered.data(), triggered.size(), -1);
     if (nfds == -1 && errno == EINTR) {
@@ -106,9 +110,6 @@ void EventMachine::Start() {
       Event* evt = it->second.get();
       bool keep = evt->callback(evt);
       if (evt->oneshot || !keep) {
-        epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, triggered[i].data.fd,
-                  &triggered[i]);
-        close(evt->fd);
         events_.erase(it);
       } else if (evt->read_size) {
         std::vector<byte> buffer(evt->read_size);
@@ -135,6 +136,18 @@ Event* EventMachine::NewEvent(int fd, int read_size, bool oneshot,
 
   events_[fd].reset(evt);
   return evt;
+}
+
+void ThreadedEventMachine::Start() {
+  running_ = true;
+  th_ = std::thread(&ThreadedEventMachine::ProcessEvents, this);
+}
+
+void ThreadedEventMachine::Stop() {
+  if (running_) {
+    EventMachine::Stop();
+    th_.join();
+  }
 }
 
 }  // namespace drc
