@@ -75,7 +75,10 @@ bool AudioStreamer::Start() {
 }
 
 void AudioStreamer::Stop() {
-  em_->Stop();
+  if (em_->Running()) {
+    em_->Stop();
+    streaming_thread_.join();
+  }
   astrm_client_->Stop();
 }
 

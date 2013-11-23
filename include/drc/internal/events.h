@@ -59,6 +59,7 @@ class EventMachine {
 
   void Start();
   void Stop() { stop_evt_->Trigger(); }
+  bool Running() { return running_; }
 
  private:
   Event* NewEvent(int fd, int read_size, bool oneshot, Event::CallbackType cb);

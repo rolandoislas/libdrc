@@ -42,7 +42,7 @@ void TriggerableEvent::Trigger() {
   write(fd, &val, sizeof (val));
 }
 
-EventMachine::EventMachine() {
+EventMachine::EventMachine() : running_(false) {
   epoll_fd_ = epoll_create(64);
   stop_evt_ = NewTriggerableEvent([&](Event*) {
     running_ = false;
@@ -94,6 +94,9 @@ void EventMachine::Start() {
   running_ = true;
   while (running_) {
     int nfds = epoll_wait(epoll_fd_, triggered.data(), triggered.size(), -1);
+    if (nfds == -1 && errno == EINTR) {
+      continue;
+    }
     assert(nfds != -1);
 
     for (int i = 0; i < nfds; ++i) {
