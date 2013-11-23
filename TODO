@@ -24,9 +24,6 @@ Minor priority
 
 * Accelerometer/Gyro/Compass data support
 
-* Proper event handling class that could be used on both Win/Lin to replace the
-  current eventfd/ppoll code.
-
 * Implement PBO readback (take the code from the current drcstream codebase)
 
 * Use one single thread for the video converter instead of having std::async
@@ -48,3 +45,6 @@ Minor priority
 * Integrate drcuinput inside libdrc as some special input receiver/handler
 
 * Document the camera settings from UvcUacCmdPacket.
+
+* Divide by 16 the number of eventfds used by EventMachine by using all bits of
+  the eventfd u64
