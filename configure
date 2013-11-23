@@ -77,6 +77,22 @@ else
     exit 1
 fi
 
+# Check if the ffmpeg version is recent enough.
+cat >$TMPDIR/test.cpp <<EOF
+#include <libavutil/pixfmt.h>
+
+int main(void) {
+  AVPixelFormat fmt = AV_PIX_FMT_NONE;
+  (void)fmt;
+  return 0;
+}
+EOF
+if ! $CXX $CXXFLAGS -c $TMPDIR/test.cpp -o $TMPDIR/test.o; then
+    echo 2>&1 "error: could not compile a test ffmpeg/libavutil C++ source file"
+    echo 2>&1 "error: this usually means your ffmpeg/libav version is not up to date"
+    exit 1
+fi
+
 # Check if x264 is patched for libdrc support.
 cat >$TMPDIR/test.cpp <<EOF
 #include <stdint.h>
