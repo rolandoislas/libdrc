@@ -42,7 +42,7 @@ class UdpServer;
 class Streamer {
  public:
   static constexpr const char* kDefaultMsgBind = "192.168.1.10:50010";
-  static constexpr const char* kDefaultInputBind = "192.168.1.11:50022";
+  static constexpr const char* kDefaultInputBind = "192.168.1.10:50022";
   static constexpr const char* kDefaultVideoDest = "192.168.1.11:50120";
   static constexpr const char* kDefaultAudioDest = "192.168.1.11:50121";
 
