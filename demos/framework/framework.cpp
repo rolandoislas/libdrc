@@ -24,7 +24,6 @@
 
 #include "framework.h"
 
-#include <drc/input.h>
 #include <drc/screen.h>
 #include <drc/streamer.h>
 #include <GL/glew.h>
@@ -37,7 +36,6 @@
 namespace demo {
 
 namespace {
-drc::InputReceiver* g_input_receiver;
 drc::Streamer* g_streamer;
 }  // namespace
 
@@ -46,12 +44,6 @@ void Init(const char* name, DemoMode mode) {
   win_title += name;
 
   if (mode == kStreamerGLDemo || mode == kStreamerSDLDemo) {
-    g_input_receiver = new drc::InputReceiver();
-    if (!g_input_receiver->Start()) {
-      puts("Unable to start input receiver");
-      exit(1);
-    }
-
     g_streamer = new drc::Streamer();
     if (!g_streamer->Start()) {
       puts("Unable to start streamer");
@@ -83,19 +75,11 @@ void Init(const char* name, DemoMode mode) {
 void Quit() {
   SDL_Quit();
 
-  if (g_input_receiver) {
-    g_input_receiver->Stop();
-  }
   if (g_streamer) {
     g_streamer->Stop();
   }
 
-  delete g_input_receiver;
   delete g_streamer;
-}
-
-drc::InputReceiver* GetInputReceiver() {
-  return g_input_receiver;
 }
 
 drc::Streamer* GetStreamer() {

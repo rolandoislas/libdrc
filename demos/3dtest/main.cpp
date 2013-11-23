@@ -125,7 +125,7 @@ int main() {
   while (demo::HandleEvents()) {
     demo::TryPushingGLFrame();
 
-    demo::GetInputReceiver()->Poll(input_data);
+    demo::GetStreamer()->PollInput(input_data);
     RenderFrame(input_data);
 
     demo::SwapBuffers();

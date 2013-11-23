@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <drc/input.h>
+#include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
 #include <functional>
 #include <mutex>

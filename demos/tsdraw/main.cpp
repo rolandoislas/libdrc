@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
   drc::InputData input_data;
   SDL_Surface* surface = SDL_GetVideoSurface();
   while (demo::HandleEvents()) {
-    demo::GetInputReceiver()->Poll(input_data);
+    demo::GetStreamer()->PollInput(input_data);
 
     SDL_LockSurface(surface);
     std::vector<drc::u8> pixels(

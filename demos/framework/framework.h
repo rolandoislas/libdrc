@@ -24,13 +24,9 @@
 
 #pragma once
 
+#include <drc/streamer.h>
 #include <drc/types.h>
 #include <vector>
-
-namespace drc {
-class InputReceiver;
-class Streamer;
-}
 
 namespace demo {
 
@@ -43,7 +39,6 @@ enum DemoMode {
 void Init(const char* name, DemoMode mode);
 void Quit();
 
-drc::InputReceiver* GetInputReceiver();
 drc::Streamer* GetStreamer();
 
 bool HandleEvents();

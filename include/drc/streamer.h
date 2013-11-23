@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <drc/input.h>
 #include <drc/pixel-format.h>
 #include <drc/types.h>
 #include <memory>
@@ -33,19 +34,22 @@
 namespace drc {
 
 class AudioStreamer;
+class InputReceiver;
 class VideoConverter;
 class VideoStreamer;
 class UdpServer;
 
 class Streamer {
  public:
+  static constexpr const char* kDefaultMsgBind = "192.168.1.10:50010";
+  static constexpr const char* kDefaultInputBind = "192.168.1.11:50022";
   static constexpr const char* kDefaultVideoDest = "192.168.1.11:50120";
   static constexpr const char* kDefaultAudioDest = "192.168.1.11:50121";
-  static constexpr const char* kDefaultMsgBind = "192.168.1.10:50010";
 
   Streamer(const std::string& vid_dst = kDefaultVideoDest,
            const std::string& aud_dst = kDefaultAudioDest,
-           const std::string& msg_bind = kDefaultMsgBind);
+           const std::string& msg_bind = kDefaultMsgBind,
+           const std::string& input_bind = kDefaultInputBind);
   virtual ~Streamer();
 
   bool Start();
@@ -68,12 +72,17 @@ class Streamer {
   // Expects 48KHz samples.
   void PushAudSamples(const std::vector<s16>& samples);
 
+  // Gets the most recent input data received from the Gamepad. Usually
+  // refreshed at 180Hz.
+  void PollInput(InputData& data);
+
  private:
   std::unique_ptr<UdpServer> msg_server_;
 
   std::unique_ptr<AudioStreamer> aud_streamer_;
   std::unique_ptr<VideoConverter> vid_converter_;
   std::unique_ptr<VideoStreamer> vid_streamer_;
+  std::unique_ptr<InputReceiver> input_receiver_;
 };
 
 }  // namespace drc

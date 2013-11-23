@@ -7,8 +7,6 @@ Major priority
 
 * Fix compatibility with recent DRC fw (video stream never syncing)
 
-* CMD message parser/generator
-
 * CMD protocol handlers
 
 * H264 decoding support (for DRC camera and DRH video)
@@ -16,9 +14,6 @@ Major priority
 * ASTRM/VSTRM receivers (for DRC camera/mic and DRH vid/aud)
 
 * HID sender
-
-* Move the input receiver inside the Streamer class
-  * Unfortunately required because of calibration
 
 Minor priority
 --------------
