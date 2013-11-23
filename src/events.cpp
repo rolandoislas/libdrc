@@ -37,11 +37,16 @@
 
 namespace drc {
 
+void TriggerableEvent::Trigger() {
+  u64 val = 1;
+  write(fd, &val, sizeof (val));
+}
+
 EventMachine::EventMachine() {
   epoll_fd_ = epoll_create(64);
   stop_evt_ = NewTriggerableEvent([&](Event*) {
-      running_ = false;
-      return false;
+    running_ = false;
+    return true;
   });
 }
 
@@ -83,7 +88,7 @@ Event* EventMachine::NewSocketEvent(int fd, Event::CallbackType cb) {
   return NewEvent(fd, 0, false, cb);
 }
 
-void EventMachine::ProcessEvents() {
+void EventMachine::Start() {
   std::array<struct epoll_event, 64> triggered;
 
   running_ = true;
@@ -97,7 +102,7 @@ void EventMachine::ProcessEvents() {
 
       Event* evt = it->second.get();
       bool keep = evt->callback(evt);
-      if (evt->oneshot || keep) {
+      if (evt->oneshot || !keep) {
         epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, triggered[i].data.fd,
                   &triggered[i]);
         close(evt->fd);
@@ -114,7 +119,7 @@ Event* EventMachine::NewEvent(int fd, int read_size, bool oneshot,
                               Event::CallbackType cb) {
   assert(fd >= 0);
 
-  Event* evt = events_[fd].get();
+  Event* evt = new Event();
   evt->fd = fd;
   evt->read_size = read_size;
   evt->oneshot = oneshot;
@@ -125,6 +130,7 @@ Event* EventMachine::NewEvent(int fd, int read_size, bool oneshot,
   epoll_evt.data.fd = fd;
   epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &epoll_evt);
 
+  events_[fd].reset(evt);
   return evt;
 }
 

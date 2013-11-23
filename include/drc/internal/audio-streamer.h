@@ -26,12 +26,15 @@
 
 #include <deque>
 #include <drc/types.h>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 
 namespace drc {
 
+class Event;
+class EventMachine;
 class UdpClient;
 
 class AudioStreamer {
@@ -55,7 +58,7 @@ class AudioStreamer {
   std::deque<s16> samples_;
   std::thread streaming_thread_;
 
-  int stop_event_fd_;
+  std::unique_ptr<EventMachine> em_;
 };
 
 }

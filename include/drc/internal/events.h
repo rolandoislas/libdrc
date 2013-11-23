@@ -32,6 +32,7 @@
 namespace drc {
 
 struct Event {
+  // Return true to keep the event, false to drop it.
   typedef std::function<bool(Event*)> CallbackType;
 
   int fd;
@@ -56,7 +57,7 @@ class EventMachine {
   Event* NewRepeatedTimerEvent(u64 nanoseconds, Event::CallbackType cb);
   Event* NewSocketEvent(int fd, Event::CallbackType cb);
 
-  void ProcessEvents();
+  void Start();
   void Stop() { stop_evt_->Trigger(); }
 
  private:
