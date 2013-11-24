@@ -30,13 +30,8 @@
 #include <drc/internal/udp.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/internal/vstrm-packet.h>
-#include <fcntl.h>
 #include <mutex>
-#include <poll.h>
 #include <string>
-#include <sys/eventfd.h>
-#include <thread>
-#include <unistd.h>
 #include <vector>
 
 namespace drc {
@@ -129,11 +124,11 @@ VideoStreamer::VideoStreamer(const std::string& vid_dst,
     : astrm_client_(new UdpClient(aud_dst)),
       vstrm_client_(new UdpClient(vid_dst)),
       encoder_(new H264Encoder()),
-      stop_event_fd_(-1),
-      resync_event_fd_(-1) {
+      resync_evt_(NULL) {
 }
 
 VideoStreamer::~VideoStreamer() {
+  Stop();
 }
 
 bool VideoStreamer::Start() {
@@ -142,31 +137,13 @@ bool VideoStreamer::Start() {
     return false;
   }
 
-  stop_event_fd_ = eventfd(0, EFD_NONBLOCK);
-  resync_event_fd_ = eventfd(0, EFD_NONBLOCK);
-  if (stop_event_fd_ == -1 || resync_event_fd_ == -1) {
-    Stop();
-    return false;
-  }
-
-  streaming_thread_ = std::thread(&VideoStreamer::ThreadLoop, this);
+  StartEM();
   return true;
 }
 
 void VideoStreamer::Stop() {
-  if (stop_event_fd_ != -1) {
-    u64 val = 1;
-    write(stop_event_fd_, &val, sizeof (val));
-    streaming_thread_.join();
-
-    close(stop_event_fd_);
-    stop_event_fd_ = -1;
-  }
-
-  if (resync_event_fd_ != -1) {
-    close(resync_event_fd_);
-    resync_event_fd_ = -1;
-  }
+  StopEM();
+  resync_evt_ = NULL;
 
   astrm_client_->Stop();
   vstrm_client_->Stop();
@@ -178,16 +155,17 @@ void VideoStreamer::PushFrame(std::vector<byte>& frame) {
 }
 
 void VideoStreamer::ResyncStream() {
-  u64 val = 1;
-  write(resync_event_fd_, &val, sizeof (val));
+  if (resync_evt_) {
+    resync_evt_->Trigger();
+  }
 }
 
-void VideoStreamer::ThreadLoop() {
-  pollfd events[] = {
-    { stop_event_fd_, POLLIN, 0 },
-    { resync_event_fd_, POLLIN, 0 },
-  };
-  size_t nfds = sizeof (events) / sizeof (events[0]);
+void VideoStreamer::InitEventsAndRun() {
+  bool resync_requested = false;
+  resync_evt_ = NewTriggerableEvent([&](Event*) {
+    resync_requested = true;
+    return true;
+  });
 
   std::vector<byte> encoding_frame;
 
@@ -196,35 +174,8 @@ void VideoStreamer::ThreadLoop() {
   std::vector<VstrmPacket> vstrm_packets;
 
   AstrmPacket astrm_packet;
-  s32 timebase = GetTimestamp();
-  while (true) {
-    timespec sleep_time = { 0, 0 };
-    if (ppoll(events, nfds, &sleep_time, NULL) == -1) {
-      break;
-    }
-
-    s32 timestamp = GetTimestamp();
-    if (timebase - timestamp > 0) {
-      usleep(timebase - timestamp);
-      timestamp = GetTimestamp();
-    }
-    timebase += static_cast<s32>(1000000.0/59.94);
-
-    bool stop_requested = false;
-    bool resync_requested = false;
-    for (size_t i = 0; i < nfds; ++i) {
-      if (events[i].fd == stop_event_fd_ && events[i].revents) {
-        stop_requested = true;
-      }
-      if (events[i].fd == resync_event_fd_ && events[i].revents) {
-        u64 val; read(resync_event_fd_, &val, sizeof (val));
-        resync_requested = true;
-      }
-    }
-    if (stop_requested) {
-      break;
-    }
-
+  s32 next_timestamp = GetTimestamp();
+  TimerEvent* timer_evt = NewTimerEvent(1, [&](Event*) {
     if (vstrm_inited) {
       astrm_client_->Send(astrm_packet.GetBytes(), astrm_packet.GetSize());
       for (const auto& pkt : vstrm_packets) {
@@ -233,20 +184,31 @@ void VideoStreamer::ThreadLoop() {
       vstrm_packets.clear();
     }
 
+    s32 timestamp = GetTimestamp();
     LatchOnCurrentFrame(encoding_frame);
-    if (encoding_frame.size() == 0) {
-      continue;
+    if (encoding_frame.size() > 0) {
+      bool send_idr = resync_requested || !vstrm_inited;
+      const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, send_idr);
+      GenerateVstrmPackets(&vstrm_packets, chunks, timestamp, send_idr,
+                           &vstrm_inited, &vstrm_seqid);
+      GenerateAstrmPacket(&astrm_packet, timestamp);
+
+      vstrm_inited = true;
+      resync_requested = false;
     }
 
-    // TODO: IDR only at the moment.
-    bool send_idr = resync_requested || !vstrm_inited;
-    const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, send_idr);
-    GenerateVstrmPackets(&vstrm_packets, chunks, timestamp, send_idr,
-                         &vstrm_inited, &vstrm_seqid);
-    GenerateAstrmPacket(&astrm_packet, timestamp);
+    timestamp = GetTimestamp();
+    next_timestamp += static_cast<s32>(1000000.0/59.94);
+    s32 delta_next = next_timestamp - timestamp;
+    if (delta_next < 1) {
+      delta_next = 1;
+    }
+    timer_evt->RearmTimer((u64)delta_next * 1000);
 
-    vstrm_inited = true;
-  }
+    return true;
+  });
+
+  ThreadedEventMachine::InitEventsAndRun();
 }
 
 void VideoStreamer::LatchOnCurrentFrame(std::vector<byte>& latched_frame) {

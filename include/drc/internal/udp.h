@@ -29,7 +29,6 @@
 #include <functional>
 #include <netinet/in.h>
 #include <string>
-#include <thread>
 
 namespace drc {
 

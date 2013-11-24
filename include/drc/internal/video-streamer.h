@@ -24,18 +24,18 @@
 
 #pragma once
 
+#include <drc/internal/events.h>
 #include <drc/types.h>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 
 namespace drc {
 
 class H264Encoder;
 class UdpClient;
 
-class VideoStreamer {
+class VideoStreamer : public ThreadedEventMachine {
  public:
   // VideoStreamer needs to send synchronization packets to the astrm port,
   // hence the aud_dst parameter.
@@ -51,8 +51,10 @@ class VideoStreamer {
   // Require an IDR to be sent next.
   void ResyncStream();
 
+ protected:
+  virtual void InitEventsAndRun();
+
  private:
-  void ThreadLoop();
   void LatchOnCurrentFrame(std::vector<byte>& latched_frame);
 
   std::unique_ptr<UdpClient> astrm_client_;
@@ -63,9 +65,7 @@ class VideoStreamer {
   std::mutex frame_mutex_;
   std::vector<byte> frame_;
 
-  int stop_event_fd_;
-  int resync_event_fd_;
-  std::thread streaming_thread_;
+  TriggerableEvent* resync_evt_;
 };
 
 }  // namespace drc
