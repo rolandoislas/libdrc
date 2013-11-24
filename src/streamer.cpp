@@ -36,7 +36,7 @@ namespace drc {
 Streamer::Streamer(const std::string& vid_dst,
                    const std::string& aud_dst,
                    const std::string& msg_bind,
-                   const std::string& input_bind) 
+                   const std::string& input_bind)
     : msg_server_(new UdpServer(msg_bind)),
       aud_streamer_(new AudioStreamer(aud_dst)),
       vid_converter_(new VideoConverter()),
@@ -53,7 +53,6 @@ bool Streamer::Start() {
         if (msg.size() == 4 && !memcmp(msg.data(), "\1\0\0\0", 4)) {
           vid_streamer_->ResyncStream();
         }
-        return true;
       });
 
   vid_converter_->SetDoneCallback(

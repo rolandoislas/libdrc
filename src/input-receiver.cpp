@@ -26,7 +26,6 @@
 #include <drc/input.h>
 #include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
-#include <functional>
 #include <mutex>
 #include <vector>
 
@@ -63,12 +62,12 @@ bool InputReceiver::Start() {
   // (3 packets missed), timeout.
   server_->SetTimeout(1000000L / 60);
 
-  server_->SetReceiveCallback(
-      [=](const std::vector<byte>& msg) {
-        return ProcessInputMessage(msg);
-      });
-  server_->SetTimeoutCallback(
-      std::bind(&InputReceiver::ProcessInputTimeout, this));
+  server_->SetReceiveCallback([=](const std::vector<byte>& msg) {
+    ProcessInputMessage(msg);
+  });
+  server_->SetTimeoutCallback([=]() {
+    ProcessInputTimeout();
+  });
 
   if (!server_->Start()) {
     return false;
@@ -102,10 +101,10 @@ void InputReceiver::SetCurrent(const InputData& new_current) {
   current_ = new_current;
 }
 
-bool InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
+void InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
   // HID packets should always be 128 bytes.
   if (msg.size() != 128) {
-    return false;
+    return;
   }
 
   InputData data;
@@ -169,12 +168,10 @@ bool InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
 
   data.valid = true;
   SetCurrent(data);
-  return true;
 }
 
-bool InputReceiver::ProcessInputTimeout() {
+void InputReceiver::ProcessInputTimeout() {
   SetCurrent(InputData());
-  return true;
 }
 
 }  // namespace drc

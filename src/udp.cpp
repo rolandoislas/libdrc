@@ -28,9 +28,7 @@
 #include <drc/types.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <poll.h>
 #include <string>
-#include <sys/eventfd.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -98,7 +96,6 @@ bool UdpClient::Send(const byte* data, size_t size) {
 
 UdpServer::UdpServer(const std::string& bind_addr)
     : sock_fd_(-1),
-      event_fd_(-1),
       timeout_us_(0),
       bind_addr_(bind_addr) {
 }
@@ -122,96 +119,47 @@ bool UdpServer::Start() {
 
   fcntl(sock_fd_, F_SETFL, O_NONBLOCK);
   if (bind(sock_fd_, (sockaddr*)&sin, sizeof (sin)) == -1) {
-    CloseSockets();
+    Stop();
     return false;
   }
 
-  event_fd_ = eventfd(0, EFD_NONBLOCK);
-  if (event_fd_ == -1) {
-    CloseSockets();
-    return false;
-  }
-
-  thread_ = std::thread(&UdpServer::ThreadLoop, this);
+  StartEM();
   return true;
 }
 
 void UdpServer::Stop() {
-  if (event_fd_ == -1) {
-    return;
-  }
-
-  u64 val = 1;
-  write(event_fd_, &val, sizeof (val));
-
-  thread_.join();
-  CloseSockets();
-}
-
-void UdpServer::CloseSockets() {
+  StopEM();
   if (sock_fd_ != -1) {
     close(sock_fd_);
     sock_fd_ = -1;
   }
-
-  if (event_fd_ != -1) {
-    close(event_fd_);
-    event_fd_ = -1;
-  }
 }
 
-void UdpServer::ThreadLoop() {
-  bool cont = true;
+void UdpServer::InitEventsAndRun() {
+  u64 timeout_ns = static_cast<u64>(timeout_us_) * 1000;
+  TimerEvent* timeout_evt = NewTimerEvent(timeout_ns, [&](Event*) {
+    timeout_cb_();
+    return true;
+  });
 
-  pollfd events[] = {
-    { sock_fd_, POLLIN, 0 },
-    { event_fd_, POLLIN, 0 },
-  };
-  size_t nfds = sizeof (events) / sizeof (events[0]);
-  timespec timeout = { static_cast<time_t>(timeout_us_ / 1000000),
-                       static_cast<time_t>((timeout_us_ % 1000000) * 1000) };
-  timespec* ptimeout = (timeout_us_ == 0) ? NULL : &timeout;
+  NewSocketEvent(sock_fd_, [&](Event*) {
+    timeout_evt->RearmTimer(timeout_ns);
 
-  while (cont) {
-    if (ppoll(events, nfds, ptimeout, NULL) == -1) {
-      cont = false;
-      break;
+    sockaddr_in sender;
+    socklen_t sender_len = sizeof (sender);
+    int msg_max_size = 2000;
+    std::vector<byte> msg(msg_max_size);
+
+    int size = recvfrom(sock_fd_, msg.data(), msg_max_size, 0,
+                        (sockaddr*)&sender, &sender_len);
+    if (size >= 0) {
+      msg.resize(size);
+      recv_cb_(msg);
     }
+    return true;
+  });
 
-    bool timed_out = true;
-    for (size_t i = 0; i < nfds; ++i) {
-      if (events[i].revents) {
-        timed_out = false;
-      }
-
-      if (events[i].revents & POLLIN) {
-        if (events[i].fd == event_fd_) {
-          cont = false;
-          break;
-        } else if (events[i].fd == sock_fd_) {
-          sockaddr_in sender;
-          socklen_t sender_len = sizeof (sender);
-          int msg_max_size = 2000;
-          std::vector<byte> msg(msg_max_size);
-
-          int size = recvfrom(sock_fd_, msg.data(), msg_max_size, 0,
-                              (sockaddr*)&sender, &sender_len);
-          if (size < 0) {
-            continue;
-          }
-          msg.resize(size);
-
-          cont = recv_cb_(msg);
-        }
-      }
-    }
-
-    if (timed_out) {
-      cont = timeout_cb_();
-    }
-  }
-
-  CloseSockets();
+  ThreadedEventMachine::InitEventsAndRun();
 }
 
 }  // namespace drc

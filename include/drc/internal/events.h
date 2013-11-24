@@ -42,12 +42,16 @@ struct Event {
 
   int fd;
   int read_size;
-  bool oneshot;
   CallbackType callback;
 };
 
 struct TriggerableEvent : public Event {
   void Trigger();
+};
+
+struct TimerEvent : public Event {
+  // Reset the timer to fire <nanoseconds> from now.
+  void RearmTimer(u64 nanoseconds);
 };
 
 class EventMachine {
@@ -58,7 +62,7 @@ class EventMachine {
   // The returned Event objects are owned by the EventMachine instance - do not
   // delete them manually.
   TriggerableEvent* NewTriggerableEvent(Event::CallbackType cb);
-  Event* NewTimerEvent(u64 nanoseconds, Event::CallbackType cb);
+  TimerEvent* NewTimerEvent(u64 nanoseconds, Event::CallbackType cb);
   Event* NewRepeatedTimerEvent(u64 nanoseconds, Event::CallbackType cb);
   Event* NewSocketEvent(int fd, Event::CallbackType cb);
 
@@ -72,7 +76,7 @@ class EventMachine {
   bool running_;
 
  private:
-  Event* NewEvent(int fd, int read_size, bool oneshot, Event::CallbackType cb);
+  Event* NewEvent(int fd, int read_size, Event::CallbackType cb);
 
   int epoll_fd_;
   std::map<int, std::unique_ptr<Event>> events_;

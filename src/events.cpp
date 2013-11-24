@@ -42,6 +42,14 @@ void TriggerableEvent::Trigger() {
   write(fd, &val, sizeof (val));
 }
 
+void TimerEvent::RearmTimer(u64 nanoseconds) {
+  struct itimerspec its = {
+    { 0, 0 },
+    { 0, (s64)nanoseconds }
+  };
+  timerfd_settime(fd, 0, &its, NULL);
+}
+
 EventMachine::EventMachine() : running_(false) {
   epoll_fd_ = epoll_create(64);
   stop_evt_ = NewTriggerableEvent([&](Event*) {
@@ -56,21 +64,19 @@ EventMachine::~EventMachine() {
 }
 
 TriggerableEvent* EventMachine::NewTriggerableEvent(Event::CallbackType cb) {
-  Event* evt = NewEvent(eventfd(0, EFD_NONBLOCK), sizeof (u64), false, cb);
-
-  // XXX: Hacky.
+  Event* evt = NewEvent(eventfd(0, EFD_NONBLOCK), sizeof (u64), cb);
   return reinterpret_cast<TriggerableEvent*>(evt);
 }
 
-Event* EventMachine::NewTimerEvent(u64 nanoseconds, Event::CallbackType cb) {
+TimerEvent* EventMachine::NewTimerEvent(u64 ns, Event::CallbackType cb) {
   struct itimerspec its = {
     { 0, 0 },
-    { 0, (s64)nanoseconds }
+    { 0, (s64)ns }
   };
 
   int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
   timerfd_settime(fd, 0, &its, NULL);
-  return NewEvent(fd, sizeof (u64), true, cb);
+  return reinterpret_cast<TimerEvent*>(NewEvent(fd, sizeof (u64), cb));
 }
 
 Event* EventMachine::NewRepeatedTimerEvent(u64 nanoseconds,
@@ -82,11 +88,11 @@ Event* EventMachine::NewRepeatedTimerEvent(u64 nanoseconds,
 
   int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
   timerfd_settime(fd, 0, &its, NULL);
-  return NewEvent(fd, sizeof (u64), false, cb);
+  return NewEvent(fd, sizeof (u64), cb);
 }
 
 Event* EventMachine::NewSocketEvent(int fd, Event::CallbackType cb) {
-  return NewEvent(fd, 0, false, cb);
+  return NewEvent(fd, 0, cb);
 }
 
 void EventMachine::StartEM() {
@@ -115,7 +121,7 @@ void EventMachine::ProcessEvents() {
 
       Event* evt = it->second.get();
       bool keep = evt->callback(evt);
-      if (evt->oneshot || !keep) {
+      if (!keep) {
         events_.erase(it);
       } else if (evt->read_size) {
         std::vector<byte> buffer(evt->read_size);
@@ -136,14 +142,12 @@ void EventMachine::ClearUserEvents() {
   }
 }
 
-Event* EventMachine::NewEvent(int fd, int read_size, bool oneshot,
-                              Event::CallbackType cb) {
+Event* EventMachine::NewEvent(int fd, int read_size, Event::CallbackType cb) {
   assert(fd >= 0);
 
   Event* evt = new Event();
   evt->fd = fd;
   evt->read_size = read_size;
-  evt->oneshot = oneshot;
   evt->callback = cb;
 
   struct epoll_event epoll_evt;

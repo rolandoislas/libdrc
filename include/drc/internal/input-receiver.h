@@ -52,8 +52,8 @@ class InputReceiver {
  private:
   void SetCurrent(const InputData& new_current);
 
-  bool ProcessInputMessage(const std::vector<byte>& data);
-  bool ProcessInputTimeout();
+  void ProcessInputMessage(const std::vector<byte>& data);
+  void ProcessInputTimeout();
 
   std::unique_ptr<UdpServer> server_;
 
