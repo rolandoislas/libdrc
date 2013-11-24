@@ -48,3 +48,6 @@ Minor priority
 
 * Divide by 16 the number of eventfds used by EventMachine by using all bits of
   the eventfd u64
+
+* Perform audio resampling internally if needed instead of requiring 48KHz s16
+  LE stereo
