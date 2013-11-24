@@ -55,9 +55,7 @@ s32 GetTimestamp() {
 }  // namespace
 
 AudioStreamer::AudioStreamer(const std::string& dst)
-    : astrm_client_(new UdpClient(dst)),
-      seqid_(0),
-      em_(new ThreadedEventMachine()) {
+    : astrm_client_(new UdpClient(dst)) {
 }
 
 AudioStreamer::~AudioStreamer() {
@@ -69,8 +67,19 @@ bool AudioStreamer::Start() {
     Stop();
     return false;
   }
+  StartEM();
+  return true;
+}
 
-  em_->NewRepeatedTimerEvent(kPacketIntervalMs * 1000000, [&](Event*) {
+void AudioStreamer::Stop() {
+  StopEM();
+  astrm_client_->Stop();
+}
+
+void AudioStreamer::InitEventsAndRun() {
+  u16 seqid = 0;
+
+  NewRepeatedTimerEvent(kPacketIntervalMs * 1000000, [&](Event*) {
     std::vector<s16> samples;
     PopSamples(samples, kSamplesPerPacket * 2);
 
@@ -79,23 +88,17 @@ bool AudioStreamer::Start() {
     pkt.SetFormat(AstrmFormat::kPcm48KHz);
     pkt.SetMonoFlag(false);
     pkt.SetVibrateFlag(false);
-    pkt.SetSeqId(seqid_);
+    pkt.SetSeqId(seqid);
     pkt.SetTimestamp(GetTimestamp());
-    pkt.SetPayload((byte*)samples.data(), samples.size() * 2);  // TODO: LE/BE
+    pkt.SetPayload((byte*)samples.data(), samples.size() * 2);  // TODO: BE
 
     astrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
-    seqid_ = (seqid_ + 1) & 0x3FF;
+    seqid = (seqid + 1) & 0x3FF;
 
     return true;
   });
-  em_->Start();
 
-  return true;
-}
-
-void AudioStreamer::Stop() {
-  em_->Stop();
-  astrm_client_->Stop();
+  ThreadedEventMachine::InitEventsAndRun();
 }
 
 void AudioStreamer::PushSamples(const std::vector<s16>& samples) {

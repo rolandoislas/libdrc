@@ -46,6 +46,7 @@ EventMachine::EventMachine() : running_(false) {
   epoll_fd_ = epoll_create(64);
   stop_evt_ = NewTriggerableEvent([&](Event*) {
     running_ = false;
+    ClearUserEvents();
     return true;
   });
 }
@@ -88,7 +89,7 @@ Event* EventMachine::NewSocketEvent(int fd, Event::CallbackType cb) {
   return NewEvent(fd, 0, false, cb);
 }
 
-void EventMachine::Start() {
+void EventMachine::StartEM() {
   running_ = true;
   ProcessEvents();
 }
@@ -105,7 +106,12 @@ void EventMachine::ProcessEvents() {
 
     for (int i = 0; i < nfds; ++i) {
       auto it = events_.find(triggered[i].data.fd);
-      assert(it != events_.end());
+      if (it == events_.end()) {
+        // This can happen when the stop event is triggered at the same time as
+        // another event. The stop event handler will clear all registered
+        // events, but ProcessEvents() is not aware of that.
+        continue;
+      }
 
       Event* evt = it->second.get();
       bool keep = evt->callback(evt);
@@ -115,6 +121,17 @@ void EventMachine::ProcessEvents() {
         std::vector<byte> buffer(evt->read_size);
         read(evt->fd, buffer.data(), evt->read_size);
       }
+    }
+  }
+}
+
+void EventMachine::ClearUserEvents() {
+  auto it = events_.begin();
+  while (it != events_.end()) {
+    if (it->second.get() == stop_evt_) {
+      events_.erase(it++);
+    } else {
+      ++it;
     }
   }
 }
@@ -138,16 +155,21 @@ Event* EventMachine::NewEvent(int fd, int read_size, bool oneshot,
   return evt;
 }
 
-void ThreadedEventMachine::Start() {
+void ThreadedEventMachine::StartEM() {
   running_ = true;
-  th_ = std::thread(&ThreadedEventMachine::ProcessEvents, this);
+  th_ = std::thread(&ThreadedEventMachine::InitEventsAndRun, this);
 }
 
-void ThreadedEventMachine::Stop() {
+void ThreadedEventMachine::StopEM() {
   if (running_) {
-    EventMachine::Stop();
+    EventMachine::StopEM();
     th_.join();
   }
+}
+
+void ThreadedEventMachine::InitEventsAndRun() {
+  // Default implementation simply starts processing events.
+  ProcessEvents();
 }
 
 }  // namespace drc

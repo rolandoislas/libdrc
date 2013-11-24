@@ -25,6 +25,7 @@
 #pragma once
 
 #include <deque>
+#include <drc/internal/events.h>
 #include <drc/types.h>
 #include <memory>
 #include <mutex>
@@ -32,11 +33,9 @@
 
 namespace drc {
 
-class Event;
-class ThreadedEventMachine;
 class UdpClient;
 
-class AudioStreamer {
+class AudioStreamer : public ThreadedEventMachine {
  public:
   AudioStreamer(const std::string& dst);
   virtual ~AudioStreamer();
@@ -47,17 +46,16 @@ class AudioStreamer {
   // Expects to get 48KHz audio data.
   void PushSamples(const std::vector<s16>& samples);
 
+ protected:
+  virtual void InitEventsAndRun();
+
  private:
   void PopSamples(std::vector<s16>& samples, u32 count);
 
   std::unique_ptr<UdpClient> astrm_client_;
 
-  u16 seqid_;
-
   std::mutex samples_mutex_;
   std::deque<s16> samples_;
-
-  std::unique_ptr<ThreadedEventMachine> em_;
 };
 
 }

@@ -62,12 +62,13 @@ class EventMachine {
   Event* NewRepeatedTimerEvent(u64 nanoseconds, Event::CallbackType cb);
   Event* NewSocketEvent(int fd, Event::CallbackType cb);
 
-  void Start();
-  void Stop() { if (running_) stop_evt_->Trigger(); }
-  bool Running() { return running_; }
+  void StartEM();
+  void StopEM() { if (running_) stop_evt_->Trigger(); }
+  bool EMRunning() { return running_; }
 
  protected:
   void ProcessEvents();
+  void ClearUserEvents();  // Does not clear the stop event.
   bool running_;
 
  private:
@@ -81,8 +82,13 @@ class EventMachine {
 // EventMachine that runs on a separate thread.
 class ThreadedEventMachine : public EventMachine {
  public:
-  void Start();
-  void Stop();
+  void StartEM();
+  void StopEM();
+
+ protected:
+  // This is called in the event machine thread. Use this to define events
+  // that share stack state.
+  virtual void InitEventsAndRun();
 
  private:
   std::thread th_;
