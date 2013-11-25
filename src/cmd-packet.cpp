@@ -78,16 +78,16 @@ void CmdPacket::SetQueryType(CmdQueryType type) {
 }
 
 void CmdPacket::SetSeqId(u16 seqid) {
-  pkt_[4] = seqid & 0xFF;
-  pkt_[5] = seqid >> 8;
+  pkt_[6] = seqid & 0xFF;
+  pkt_[7] = seqid >> 8;
 }
 
 void CmdPacket::SetPayload(const byte* payload, size_t size) {
   assert(size <= kMaxCmdPayloadSize);
   memcpy(pkt_.data() + kCmdHeaderSize, payload, size);
 
-  pkt_[6] = size & 0xFF;
-  pkt_[7] = size >> 8;
+  pkt_[4] = size & 0xFF;
+  pkt_[5] = size >> 8;
 }
 
 

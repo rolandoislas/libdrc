@@ -46,6 +46,7 @@ void InitRendering() {
 
 void RenderFrame(const drc::InputData& input_data) {
   static float rot[2], trans[2], bkgd;
+  static int bklt_level = 4;
 
   if (input_data.valid) {
     trans[0] += input_data.left_stick_x / 40.0;
@@ -56,6 +57,19 @@ void RenderFrame(const drc::InputData& input_data) {
 
     if (input_data.buttons & drc::InputData::kBtnA) {
       bkgd = 1.0;
+    }
+
+    int new_bklt_level = bklt_level;
+    if (input_data.buttons & drc::InputData::kBtnUp && new_bklt_level < 4) {
+      new_bklt_level++;
+    } else if (input_data.buttons & drc::InputData::kBtnDown &&
+               new_bklt_level > 0) {
+      new_bklt_level--;
+    }
+
+    if (new_bklt_level != bklt_level) {
+      bklt_level = new_bklt_level;
+      demo::GetStreamer()->SetLcdBacklight(bklt_level);
     }
   }
 

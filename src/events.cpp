@@ -100,6 +100,12 @@ void EventMachine::StartEM() {
   ProcessEvents();
 }
 
+void EventMachine::CancelEvent(Event* evt) {
+  auto it = events_.find(evt->fd);
+  assert(it != events_.end());
+  events_.erase(it);
+}
+
 void EventMachine::ProcessEvents() {
   std::array<struct epoll_event, 64> triggered;
 

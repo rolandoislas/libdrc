@@ -70,6 +70,8 @@ class EventMachine {
   void StopEM() { if (running_) stop_evt_->Trigger(); }
   bool EMRunning() { return running_; }
 
+  void CancelEvent(Event* evt);
+
  protected:
   void ProcessEvents();
   void ClearUserEvents();  // Does not clear the stop event.

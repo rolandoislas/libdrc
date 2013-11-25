@@ -24,6 +24,7 @@
 
 #include <cstring>
 #include <drc/internal/audio-streamer.h>
+#include <drc/internal/cmd-protocol.h>
 #include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/video-converter.h>
@@ -33,12 +34,38 @@
 
 namespace drc {
 
+namespace {
+
+bool RunGenericCmd(CmdClient* cli, int service, int method,
+                   const std::vector<byte>& msg, bool wait = false) {
+  GenericCmdPacket pkt;
+  pkt.SetFlags(GenericCmdPacket::kQueryFlag);
+  pkt.SetServiceId(service);
+  pkt.SetMethodId(method);
+  pkt.SetPayload(msg.data(), msg.size());
+
+  if (wait) {
+    std::vector<byte> repl;
+    return cli->Query(CmdQueryType::kGenericCommand, pkt.GetBytes(),
+                      pkt.GetSize(), repl);
+  } else {
+    cli->AsyncQuery(CmdQueryType::kGenericCommand, pkt.GetBytes(),
+                    pkt.GetSize(), [](bool, const std::vector<byte>&) {});
+    return true;
+  }
+}
+
+}  // namespace
+
 Streamer::Streamer(const std::string& vid_dst,
                    const std::string& aud_dst,
+                   const std::string& cmd_dst,
                    const std::string& msg_bind,
-                   const std::string& input_bind)
+                   const std::string& input_bind,
+                   const std::string& cmd_bind)
     : msg_server_(new UdpServer(msg_bind)),
       aud_streamer_(new AudioStreamer(aud_dst)),
+      cmd_client_(new CmdClient(cmd_dst, cmd_bind)),
       vid_converter_(new VideoConverter()),
       vid_streamer_(new VideoStreamer(vid_dst, aud_dst)),
       input_receiver_(new InputReceiver(input_bind)) {
@@ -62,6 +89,7 @@ bool Streamer::Start() {
 
   if (!msg_server_->Start() ||
       !aud_streamer_->Start() ||
+      !cmd_client_->Start() ||
       !vid_converter_->Start() ||
       !vid_streamer_->Start() ||
       !input_receiver_->Start()) {
@@ -74,6 +102,7 @@ bool Streamer::Start() {
 void Streamer::Stop() {
   msg_server_->Stop();
   aud_streamer_->Stop();
+  cmd_client_->Stop();
   vid_converter_->Stop();
   vid_streamer_->Stop();
   input_receiver_->Stop();
@@ -96,6 +125,12 @@ void Streamer::PushAudSamples(const std::vector<s16>& samples) {
 
 void Streamer::PollInput(InputData& data) {
   input_receiver_->Poll(data);
+}
+
+bool Streamer::SetLcdBacklight(int level, bool wait) {
+  std::vector<byte> payload;
+  payload.push_back((level + 1) & 0xFF);
+  return RunGenericCmd(cmd_client_.get(), 5, 0x14, payload, wait);
 }
 
 }  // namespace drc

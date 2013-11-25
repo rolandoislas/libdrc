@@ -34,6 +34,7 @@
 namespace drc {
 
 class AudioStreamer;
+class CmdClient;
 class InputReceiver;
 class VideoConverter;
 class VideoStreamer;
@@ -43,17 +44,25 @@ class Streamer {
  public:
   static constexpr const char* kDefaultMsgBind = "192.168.1.10:50010";
   static constexpr const char* kDefaultInputBind = "192.168.1.10:50022";
+  static constexpr const char* kDefaultCmdBind = "192.168.1.10:50023";
   static constexpr const char* kDefaultVideoDest = "192.168.1.11:50120";
   static constexpr const char* kDefaultAudioDest = "192.168.1.11:50121";
+  static constexpr const char* kDefaultCmdDest = "192.168.1.11:50123";
 
   Streamer(const std::string& vid_dst = kDefaultVideoDest,
            const std::string& aud_dst = kDefaultAudioDest,
+           const std::string& cmd_dst = kDefaultCmdDest,
            const std::string& msg_bind = kDefaultMsgBind,
-           const std::string& input_bind = kDefaultInputBind);
+           const std::string& input_bind = kDefaultInputBind,
+           const std::string& cmd_bind = kDefaultCmdBind);
   virtual ~Streamer();
 
   bool Start();
   void Stop();
+
+  // Data streaming/receiving methods. These methods are used for the core
+  // features of the gamepad: video streaming, audio streaming and input
+  // polling.
 
   // Takes ownership of the frame.
   enum FlippingMode {
@@ -76,10 +85,19 @@ class Streamer {
   // refreshed at 180Hz.
   void PollInput(InputData& data);
 
+  // More minor features are exposed through the following methods. These
+  // methods provide a "bool wait" argument in order to wait for the change to
+  // actually be applied. If waiting is disabled (default), these methods are
+  // not guaranteed to succeed. Waiting can block for up to 10s.
+
+  // Level must be in [0;4] (0 is minimum, 4 is maximum).
+  bool SetLcdBacklight(int level, bool wait = false);
+
  private:
   std::unique_ptr<UdpServer> msg_server_;
 
   std::unique_ptr<AudioStreamer> aud_streamer_;
+  std::unique_ptr<CmdClient> cmd_client_;
   std::unique_ptr<VideoConverter> vid_converter_;
   std::unique_ptr<VideoStreamer> vid_streamer_;
   std::unique_ptr<InputReceiver> input_receiver_;
