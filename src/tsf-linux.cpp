@@ -84,6 +84,10 @@ int GetTsf(u64 *tsf) {
       std::string tsf_path = std::string("/sys/class/net/") + drc_if +
                              "/device/tsf";
       fd = open(tsf_path.c_str(), O_RDONLY);
+      if (fd == -1) {
+        tsf_path = std::string("/sys/class/net/") + drc_if + "/tsf";
+        fd = open(tsf_path.c_str(), O_RDONLY);
+      }
     }
 
     if (fd == -1) {
