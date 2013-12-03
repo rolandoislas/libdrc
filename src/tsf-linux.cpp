@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <net/if.h>
 #include <unistd.h>
 
 namespace drc {
@@ -48,7 +49,7 @@ int GetInterfaceOfIpv4(const std::string& addr, std::string* out) {
 
   p = ifa;
   while (p) {
-    if (p->ifa_addr != NULL) {
+    if ((p->ifa_flags & IFF_RUNNING) && (p->ifa_addr != NULL)) {
       if (p->ifa_addr->sa_family == AF_INET) {
         rv = getnameinfo(p->ifa_addr, sizeof(struct sockaddr_in), ip_buffer,
                          sizeof(ip_buffer), NULL, 0, NI_NUMERICHOST);
