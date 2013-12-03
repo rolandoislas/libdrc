@@ -37,7 +37,7 @@ uint16_t GetCRC(const uint8_t *location) {
 
 
 uint16_t CRC16(const uint8_t *data, size_t n) {
-  int i, j;
+  size_t i, j;
   uint16_t crc = 0xffff;
   uint16_t mask = 0x8408;
   for (i = 0; i < n; ++i) {
@@ -83,17 +83,17 @@ inline int32_t ReadInt24(const uint8_t *data) {
 
 DeviceConfig::DeviceConfig():
     wifi_auth_type_(0), wifi_auth_mode_(kWifiAuthModeUnknown),
-    wifi_enc_type_(kWifiEncTypeUnknown), wowl_mac_({}), wowl_setting_(0),
+    wifi_enc_type_(kWifiEncTypeUnknown), wowl_mac_({0}), wowl_setting_(0),
     last_channel_(0), board_main_version_(kBoardMainVersionUnknown),
     board_sub_version_(kBoardSubVersionUnknown), region_(kRegionUnsupported),
-    volume_min_(0), volume_max_(0), gyro_zer_({}), gyro_rot_({}), gyro_spd_(0),
-    language_(kLanguageUnsupported), opening_screen_(0),
-    development_config_(0), accel_0g_({}), accel_1g_({}), panel_ref1_({20, 20}),
-    panel_ref2_({834, 460}), panel_raw1_({195, 3818}), panel_raw2_({3877, 373}),
-    language_bank_(0), language_version_(0), tv_remocon_version_(0),
-    service_version_(0), opening_screen1_version_(0),
+    volume_min_(0), volume_max_(0), gyro_zer_({0}), gyro_rot_({0}),
+    gyro_spd_(0), language_(kLanguageUnsupported), opening_screen_(0),
+    development_config_(0), accel_0g_({0}), accel_1g_({0}),
+    panel_ref1_({20, 20}), panel_ref2_({834, 460}), panel_raw1_({195, 3818}),
+    panel_raw2_({3877, 373}), language_bank_(0), language_version_(0),
+    tv_remocon_version_(0), service_version_(0), opening_screen1_version_(0),
     opening_screen2_version_(0), initial_boot_flag_(0), lcd_setting_(0),
-    tv_remocon_id1_({}), tv_remocon_id2_({}), airwave_setting_(0) {
+    tv_remocon_id1_({0}), tv_remocon_id2_({0}), airwave_setting_(0) {
 }
 
 void DeviceConfig::LoadFromBlob(const uint8_t *blob, size_t n) {
