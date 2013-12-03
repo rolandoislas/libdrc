@@ -31,28 +31,40 @@
 #include <drc/internal/video-streamer.h>
 #include <drc/streamer.h>
 #include <vector>
+#include <string>
 
 namespace drc {
 
 namespace {
 
 bool RunGenericCmd(CmdClient* cli, int service, int method,
-                   const std::vector<byte>& msg, bool wait = false) {
+                   const std::vector<byte>& msg, std::vector<byte>* repl) {
   GenericCmdPacket pkt;
   pkt.SetFlags(GenericCmdPacket::kQueryFlag);
   pkt.SetServiceId(service);
   pkt.SetMethodId(method);
   pkt.SetPayload(msg.data(), msg.size());
 
-  if (wait) {
-    std::vector<byte> repl;
-    return cli->Query(CmdQueryType::kGenericCommand, pkt.GetBytes(),
+  return cli->Query(CmdQueryType::kGenericCommand, pkt.GetBytes(),
                       pkt.GetSize(), repl);
-  } else {
-    cli->AsyncQuery(CmdQueryType::kGenericCommand, pkt.GetBytes(),
-                    pkt.GetSize(), [](bool, const std::vector<byte>&) {});
-    return true;
+}
+
+void RunGenericAsyncCmd(CmdClient* cli, int service, int method,
+                   const std::vector<byte>& msg, CmdState::ReplyCallback cb) {
+  GenericCmdPacket pkt;
+  pkt.SetFlags(GenericCmdPacket::kQueryFlag);
+  pkt.SetServiceId(service);
+  pkt.SetMethodId(method);
+  pkt.SetPayload(msg.data(), msg.size());
+
+  if (cb == nullptr) {
+    cb = [](bool succ, const std::vector<byte>& data) {
+      // empty callback
+    };
   }
+
+  cli->AsyncQuery(CmdQueryType::kGenericCommand, pkt.GetBytes(),
+                      pkt.GetSize(), cb);
 }
 
 }  // namespace
@@ -129,8 +141,36 @@ void Streamer::PollInput(InputData& data) {
 
 bool Streamer::SetLcdBacklight(int level, bool wait) {
   std::vector<byte> payload;
+  bool rv = true;
   payload.push_back((level + 1) & 0xFF);
-  return RunGenericCmd(cmd_client_.get(), 5, 0x14, payload, wait);
+  if (wait) {
+    rv = RunGenericCmd(cmd_client_.get(), 5, 0x14, payload, nullptr);
+  } else {
+    RunGenericAsyncCmd(cmd_client_.get(), 5, 0x14, payload, nullptr);
+  }
+  return rv;
+}
+
+bool Streamer::GetUICConfig(std::vector<byte> *config,
+                            CmdState::ReplyCallback cb) {
+  bool rv = false;
+  std::vector<byte> reply;
+  std::vector<byte> payload;
+  if (cb == nullptr) {
+    rv = RunGenericCmd(cmd_client_.get(), 5, 0x06, payload, &reply);
+    if (rv) {
+      if (reply.size() == 0x310) {
+        if (config) {
+          config->assign(reply.data()+0x10, reply.data()+0x310);
+          rv = true;
+        }
+      }
+    }
+  } else {
+    RunGenericAsyncCmd(cmd_client_.get(), 5, 0x06, payload, cb);
+    rv = true;
+  }
+  return rv;
 }
 
 }  // namespace drc

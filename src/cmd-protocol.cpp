@@ -29,6 +29,8 @@
 #include <drc/types.h>
 #include <mutex>
 #include <string>
+#include <vector>
+#include <condition_variable>
 
 namespace drc {
 
@@ -90,17 +92,27 @@ void CmdClient::AsyncQuery(CmdQueryType qtype, const byte* payload,
 }
 
 bool CmdClient::Query(CmdQueryType qtype, const byte* payload,
-                      size_t size, std::vector<byte>& reply) {
+                      size_t size, std::vector<byte>* reply) {
   bool success = false;
+  bool callback_done = false;
+  std::mutex mtx;
+  std::condition_variable cv;
+  std::unique_lock<std::mutex> outer_lck(mtx);
 
   AsyncQuery(qtype, payload, size,
       [&](bool succ, const std::vector<byte>& data) {
-        reply.assign(data.begin(), data.end());
+        std::unique_lock<std::mutex> inner_lck(mtx);
+        if (reply) {
+          reply->assign(data.begin(), data.end());
+        }
         success = succ;
+        callback_done = true;
+        cv.notify_all();
       });
 
-  // TODO: wait for async query to complete using a condition variable signaled
-  // in the callback.
+  cv.wait(outer_lck, [&callback_done]() {
+    return callback_done;
+  });
 
   return success;
 }
@@ -122,6 +134,7 @@ void CmdClient::RemoveState(u16 seqid) {
 void CmdClient::PacketReceived(const std::vector<byte>& msg) {
   CmdPacket pkt(msg);
 
+
   // If the packet is a reply, send a reply ack regardless in response.
   if (pkt.PacketType() == CmdPacketType::kReply) {
     SendReplyAck(pkt.SeqId(), pkt.QueryType());
@@ -137,8 +150,10 @@ void CmdClient::PacketReceived(const std::vector<byte>& msg) {
     return;
   }
 
-  CancelEvent(st->timeout_evt);
-  st->timeout_evt = NULL;
+  if (pkt.PacketType() == CmdPacketType::kReply) {
+    CancelEvent(st->timeout_evt);
+    st->timeout_evt = NULL;
+  }
 
   if (pkt.PacketType() == CmdPacketType::kQueryAck) {
     st->state = CmdPacketType::kReply;
@@ -156,7 +171,8 @@ void CmdClient::SendQuery(u16 seqid, CmdState* cmd_st) {
   pkt.SetSeqId(seqid);
   pkt.SetPayload(cmd_st->query_payload.data(), cmd_st->query_payload.size());
 
-  cmd_st->timeout_evt = NewRepeatedTimerEvent(kTimeoutMs * 1000000, [&](Event*) {
+  cmd_st->timeout_evt = NewRepeatedTimerEvent(kTimeoutMs * 1000000,
+                                              [&](Event* ev) {
     return RetryOperation(seqid);
   });
 

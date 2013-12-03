@@ -49,6 +49,9 @@ class Streamer {
   static constexpr const char* kDefaultAudioDest = "192.168.1.11:50121";
   static constexpr const char* kDefaultCmdDest = "192.168.1.11:50123";
 
+  typedef std::function<void(bool, const std::vector<byte>&)>
+                             CommandReplyCallback;
+
   Streamer(const std::string& vid_dst = kDefaultVideoDest,
            const std::string& aud_dst = kDefaultAudioDest,
            const std::string& cmd_dst = kDefaultCmdDest,
@@ -92,6 +95,10 @@ class Streamer {
 
   // Level must be in [0;4] (0 is minimum, 4 is maximum).
   bool SetLcdBacklight(int level, bool wait = false);
+
+  // Gets the UIC config. cb can be nullptr, or config can be nullptr
+  // but not both. If cb is defined, method is called asyncronously.
+  bool GetUICConfig(std::vector<byte> *config, CommandReplyCallback cb);
 
  private:
   std::unique_ptr<UdpServer> msg_server_;

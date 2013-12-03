@@ -23,6 +23,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
+#ifndef INCLUDE_DRC_INTERNAL_CMD_PACKET_H_
+#define INCLUDE_DRC_INTERNAL_CMD_PACKET_H_
 
 #include <array>
 #include <drc/types.h>
@@ -49,7 +51,7 @@ enum class CmdQueryType {
 class CmdPacket {
  public:
   CmdPacket();
-  CmdPacket(const std::vector<byte>& packet);
+  explicit CmdPacket(const std::vector<byte>& packet);
   virtual ~CmdPacket();
 
   CmdPacketType PacketType() const;
@@ -84,10 +86,11 @@ class GenericCmdPacket {
   };
 
   GenericCmdPacket();
-  GenericCmdPacket(const std::vector<byte>& packet);
+  explicit GenericCmdPacket(const std::vector<byte>& packet);
   virtual ~GenericCmdPacket();
 
   u16 TransactionId() const;
+  bool FinalFragment() const;
   u16 FragmentId() const;
   u8 Flags() const;
   u8 ServiceId() const;
@@ -97,6 +100,7 @@ class GenericCmdPacket {
   size_t PayloadSize() const;
 
   void SetTransactionId(u16 tid);
+  void SetFinalFragment(bool v);
   void SetFragmentId(u16 fid);
   void SetFlags(u8 flags);
   void SetServiceId(u8 sid);
@@ -119,7 +123,7 @@ const size_t kUvcUacCmdPacketSize = 48;
 class UvcUacCmdPacket {
  public:
   UvcUacCmdPacket();
-  UvcUacCmdPacket(const std::vector<byte>& packet);
+  explicit UvcUacCmdPacket(const std::vector<byte>& packet);
   virtual ~UvcUacCmdPacket();
 
   bool MicEnabled() const;
@@ -149,7 +153,7 @@ const size_t kTimeCmdPacketSize = 8;
 class TimeCmdPacket {
  public:
   TimeCmdPacket();
-  TimeCmdPacket(const std::vector<byte>& packet);
+  explicit TimeCmdPacket(const std::vector<byte>& packet);
   virtual ~TimeCmdPacket();
 
   u16 Days() const;
@@ -169,3 +173,5 @@ class TimeCmdPacket {
 };
 
 }  // namespace drc
+
+#endif  // INCLUDE_DRC_INTERNAL_CMD_PACKET_H_

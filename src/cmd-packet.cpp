@@ -54,7 +54,7 @@ CmdQueryType CmdPacket::QueryType() const {
 }
 
 u16 CmdPacket::SeqId() const {
-  return (pkt_[5] << 8) | pkt_[4];
+  return (pkt_[7] << 8) | pkt_[6];
 }
 
 const byte* CmdPacket::Payload() const {
@@ -62,7 +62,7 @@ const byte* CmdPacket::Payload() const {
 }
 
 size_t CmdPacket::PayloadSize() const {
-  return (pkt_[7] << 8) | pkt_[6];
+  return (pkt_[5] << 8) | pkt_[4];
 }
 
 void CmdPacket::SetPacketType(CmdPacketType type) {
@@ -107,9 +107,11 @@ void GenericCmdPacket::ResetPacket() {
 
   // Set magic
   pkt_[0] = 0x7E;
+  pkt_[1] = 0x01;
 
   // Set service and method to invalid values to avoid sending a valid command
   // with an uninitialized packet.
+  SetFinalFragment(true);
   SetServiceId(0xFF);
   SetMethodId(0xFF);
 }
@@ -118,8 +120,12 @@ u16 GenericCmdPacket::TransactionId() const {
   return (pkt_[2] << 8) | (pkt_[3] >> 4);
 }
 
+bool GenericCmdPacket::FinalFragment() const {
+  return (pkt_[3] & 0x8) != 0;
+}
+
 u16 GenericCmdPacket::FragmentId() const {
-  return ((pkt_[3] & 0xF) << 8) | pkt_[4];
+  return ((pkt_[3] & 0x7) << 8) | pkt_[4];
 }
 
 u8 GenericCmdPacket::Flags() const {
@@ -152,9 +158,17 @@ void GenericCmdPacket::SetTransactionId(u16 tid) {
   pkt_[3] = (pkt_[3] & 0xF) | ((tid << 4) & 0xF0);
 }
 
+void GenericCmdPacket::SetFinalFragment(bool v) {
+  if (v) {
+    pkt_[3] |= 0x08;
+  } else {
+    pkt_[3] &= ~0x08;
+  }
+}
+
 void GenericCmdPacket::SetFragmentId(u16 fid) {
-  assert(fid < 0x400);
-  pkt_[3] = (pkt_[3] & 0xF0) | (fid >> 8);
+  assert(fid < 0x800);
+  pkt_[3] = (pkt_[3] & 0xf0) | (fid >> 8);
   pkt_[4] = fid & 0xFF;
 }
 

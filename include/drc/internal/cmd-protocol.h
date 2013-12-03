@@ -23,8 +23,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
+#ifndef INCLUDE_DRC_INTERNAL_CMD_PROTOCOL_H_
+#define INCLUDE_DRC_INTERNAL_CMD_PROTOCOL_H_
 
 #include <drc/internal/cmd-packet.h>
+#include <drc/internal/cmd-protocol.h>
 #include <drc/internal/events.h>
 #include <drc/types.h>
 #include <map>
@@ -69,7 +72,7 @@ class CmdClient : public ThreadedEventMachine {
 
   // Be careful: this can take up to 10s to retry and detect timeout.
   bool Query(CmdQueryType qtype, const byte* payload, size_t size,
-             std::vector<byte>& reply);
+             std::vector<byte>* reply);
 
  private:
   CmdState* FindState(u16 seqid);
@@ -94,3 +97,5 @@ class CmdServer {
 };
 
 }  // namespace drc
+
+#endif  // INCLUDE_DRC_INTERNAL_CMD_PROTOCOL_H_
