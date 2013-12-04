@@ -31,6 +31,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 namespace drc {
 
@@ -87,7 +88,8 @@ void UdpClient::Stop() {
 }
 
 bool UdpClient::Send(const byte* data, size_t size) {
-  if (sendto(sock_fd_, data, size, 0, (sockaddr*)&dst_addr_parsed_,
+  if (sendto(sock_fd_, data, size, 0,
+             reinterpret_cast<sockaddr*>(&dst_addr_parsed_),
              sizeof (dst_addr_parsed_)) < 0) {
     return false;
   }
@@ -118,7 +120,7 @@ bool UdpServer::Start() {
   }
 
   fcntl(sock_fd_, F_SETFL, O_NONBLOCK);
-  if (bind(sock_fd_, (sockaddr*)&sin, sizeof (sin)) == -1) {
+  if (bind(sock_fd_, reinterpret_cast<sockaddr*>(&sin), sizeof (sin)) == -1) {
     Stop();
     return false;
   }
@@ -151,7 +153,7 @@ void UdpServer::InitEventsAndRun() {
     std::vector<byte> msg(msg_max_size);
 
     int size = recvfrom(sock_fd_, msg.data(), msg_max_size, 0,
-                        (sockaddr*)&sender, &sender_len);
+                        reinterpret_cast<sockaddr*>(&sender), &sender_len);
     if (size >= 0) {
       msg.resize(size);
       recv_cb_(msg);

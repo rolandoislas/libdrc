@@ -50,7 +50,7 @@ enum class AstrmPacketType {
 class AstrmPacket {
  public:
   AstrmPacket();
-  AstrmPacket(const std::vector<byte>& packet);
+  explicit AstrmPacket(const std::vector<byte>& packet);
   virtual ~AstrmPacket();
 
   AstrmFormat Format() const;

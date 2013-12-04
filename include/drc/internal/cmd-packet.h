@@ -23,8 +23,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#ifndef INCLUDE_DRC_INTERNAL_CMD_PACKET_H_
-#define INCLUDE_DRC_INTERNAL_CMD_PACKET_H_
 
 #include <array>
 #include <drc/types.h>
@@ -173,5 +171,3 @@ class TimeCmdPacket {
 };
 
 }  // namespace drc
-
-#endif  // INCLUDE_DRC_INTERNAL_CMD_PACKET_H_

@@ -27,8 +27,8 @@
 #include <drc/internal/h264-encoder.h>
 #include <drc/screen.h>
 #include <drc/types.h>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 extern "C" {
 #include <x264.h>

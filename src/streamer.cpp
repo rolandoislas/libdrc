@@ -30,8 +30,8 @@
 #include <drc/internal/video-converter.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/streamer.h>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace drc {
 
@@ -95,7 +95,7 @@ bool Streamer::Start() {
       });
 
   vid_converter_->SetDoneCallback(
-      [=](std::vector<byte>& yuv_frame) {
+      [=](std::vector<byte>* yuv_frame) {
         PushNativeVidFrame(yuv_frame);
       });
 
@@ -120,14 +120,14 @@ void Streamer::Stop() {
   input_receiver_->Stop();
 }
 
-void Streamer::PushVidFrame(std::vector<byte>& frame, u16 width, u16 height,
+void Streamer::PushVidFrame(std::vector<byte>* frame, u16 width, u16 height,
                             PixelFormat pixfmt, FlippingMode flip) {
   bool do_flip = (flip == FlipVertically);
   vid_converter_->PushFrame(frame,
                             std::make_tuple(width, height, pixfmt, do_flip));
 }
 
-void Streamer::PushNativeVidFrame(std::vector<byte>& frame) {
+void Streamer::PushNativeVidFrame(std::vector<byte>* frame) {
   vid_streamer_->PushFrame(frame);
 }
 
@@ -135,7 +135,7 @@ void Streamer::PushAudSamples(const std::vector<s16>& samples) {
   aud_streamer_->PushSamples(samples);
 }
 
-void Streamer::PollInput(InputData& data) {
+void Streamer::PollInput(InputData* data) {
   input_receiver_->Poll(data);
 }
 

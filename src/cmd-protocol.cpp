@@ -23,6 +23,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
+#include <condition_variable>
 #include <drc/internal/cmd-packet.h>
 #include <drc/internal/cmd-protocol.h>
 #include <drc/internal/udp.h>
@@ -30,7 +31,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include <condition_variable>
 
 namespace drc {
 

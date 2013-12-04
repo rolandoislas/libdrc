@@ -24,9 +24,9 @@
 
 #include <drc/c/streamer.h>
 #include <drc/streamer.h>
+#include <vector>
 
 extern "C" {
-
 struct drc_streamer {
   drc::Streamer streamer;
 };
@@ -51,8 +51,7 @@ void drc_push_vid_frame(struct drc_streamer* self, const unsigned char* buffer,
                         unsigned int size, unsigned short width,
                         unsigned short height, enum drc_pixel_format pixfmt) {
   std::vector<drc::byte> frame(buffer, buffer + size);
-  self->streamer.PushVidFrame(
-      frame, width, height, static_cast<drc::PixelFormat>(pixfmt));
+  self->streamer.PushVidFrame(&frame, width, height,
+                              static_cast<drc::PixelFormat>(pixfmt));
 }
-
 }

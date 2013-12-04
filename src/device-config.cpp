@@ -22,8 +22,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <drc/types.h>
 #include <drc/internal/device-config.h>
+#include <drc/types.h>
 #include <algorithm>
 #include <string>
 

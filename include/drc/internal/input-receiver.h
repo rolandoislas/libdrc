@@ -28,6 +28,7 @@
 #include <drc/types.h>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <vector>
 
 namespace drc {
@@ -38,13 +39,13 @@ class InputReceiver {
  public:
   static constexpr const char* kDefaultBind = "192.168.1.10:50022";
 
-  InputReceiver(const std::string& hid_bind = kDefaultBind);
+  explicit InputReceiver(const std::string& hid_bind = kDefaultBind);
   virtual ~InputReceiver();
 
   bool Start();
   void Stop();
 
-  void Poll(InputData& data);
+  void Poll(InputData* data);
 
   void CalibrateWithPoints(s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
                            s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y);

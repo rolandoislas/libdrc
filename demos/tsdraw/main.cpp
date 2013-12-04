@@ -24,26 +24,28 @@
 
 #include "../framework/framework.h"
 
-#include <drc/input.h>
-#include <drc/screen.h>
 #include <cmath>
 #include <cstdlib>
+#include <drc/input.h>
+#include <drc/screen.h>
 #include <drc/streamer.h>
 #include <SDL.h>
+#include <vector>
 
 namespace {
 
 const drc::u32 kColors[] = {
-  0xFFFFFFFF, // white
-  0x000000FF, // black
-  0xFF0000FF, // red
-  0x00FF00FF, // green
-  0x0000FFFF, // blue
-  0xFFFF00FF, // yellow
-  0xFF00FFFF, // purple
-  0x00FFFFFF, // aqua
+  0xFFFFFFFF,  // white
+  0x000000FF,  // black
+  0xFF0000FF,  // red
+  0x00FF00FF,  // green
+  0x0000FFFF,  // blue
+  0xFFFF00FF,  // yellow
+  0xFF00FFFF,  // purple
+  0x00FFFFFF,  // aqua
 };
-const int kNumColors = (int)(sizeof (kColors) / sizeof (kColors[0]));
+const int kNumColors =
+    static_cast<int>(sizeof (kColors) / sizeof (kColors[0]));
 
 void PutPixel(drc::u8* pixels, int x, int y, drc::u32 col) {
   drc::u8* ppix = pixels + 4 * (y * drc::kScreenWidth + x);
@@ -168,7 +170,7 @@ void RenderFrame(SDL_Surface* surface, const drc::InputData& input_data) {
   ShowSelectedColor(pixels, selected_col);
 }
 
-}
+}  // namespace
 
 int main(int argc, char** argv) {
   demo::Init("tsdraw", demo::kStreamerSDLDemo);
@@ -176,13 +178,13 @@ int main(int argc, char** argv) {
   drc::InputData input_data;
   SDL_Surface* surface = SDL_GetVideoSurface();
   while (demo::HandleEvents()) {
-    demo::GetStreamer()->PollInput(input_data);
+    demo::GetStreamer()->PollInput(&input_data);
 
     SDL_LockSurface(surface);
     std::vector<drc::u8> pixels(
         (drc::u8*)surface->pixels,
         (drc::u8*)surface->pixels + drc::kScreenWidth * drc::kScreenHeight * 4);
-    demo::GetStreamer()->PushVidFrame(pixels, drc::kScreenWidth,
+    demo::GetStreamer()->PushVidFrame(&pixels, drc::kScreenWidth,
                                       drc::kScreenHeight,
                                       drc::PixelFormat::kBGRA);
     RenderFrame(surface, input_data);

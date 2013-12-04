@@ -24,12 +24,9 @@
 
 #pragma once
 
-#ifndef INCLUDE_DRC_INTERNAL_DEVICE_CONFIG_H_
-#define INCLUDE_DRC_INTERNAL_DEVICE_CONFIG_H_
-
+#include <array>
 #include <drc/types.h>
 #include <string>
-#include <array>
 
 namespace drc {
 
@@ -340,5 +337,3 @@ class DeviceConfig {
 
 
 }  // namespace drc
-
-#endif  // INCLUDE_DRC_INTERNAL_DEVICE_CONFIG_H_

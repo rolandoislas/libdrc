@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "framework.h"
+#include "./framework.h"
 
 #include <drc/screen.h>
 #include <drc/streamer.h>
@@ -101,7 +101,7 @@ bool HandleEvents() {
 std::vector<drc::u8> TryReadbackFromGL() {
   std::vector<drc::u8> ret;
 
-  // TODO: PBO
+  // TODO(delroth): PBO
 
   // Very stupid implementation - ideally the GPU should flip the image
   // vertically and encode to YUV420.
@@ -134,7 +134,7 @@ void TryPushingGLFrame() {
       }
     }
   }
-  g_streamer->PushVidFrame(frame, drc::kScreenWidth, drc::kScreenHeight,
+  g_streamer->PushVidFrame(&frame, drc::kScreenWidth, drc::kScreenHeight,
                            drc::PixelFormat::kBGRA,
                            drc::Streamer::FlipVertically);
 }

@@ -29,12 +29,13 @@
 #include <functional>
 #include <netinet/in.h>
 #include <string>
+#include <vector>
 
 namespace drc {
 
 class UdpClient {
  public:
-  UdpClient(const std::string& dst_addr);
+  explicit UdpClient(const std::string& dst_addr);
   virtual ~UdpClient();
 
   bool Start();
@@ -56,7 +57,7 @@ class UdpServer : public ThreadedEventMachine {
   typedef std::function<void(const std::vector<byte>&)> ReceiveCallback;
   typedef std::function<void(void)> TimeoutCallback;
 
-  UdpServer(const std::string& bind_addr);
+  explicit UdpServer(const std::string& bind_addr);
   virtual ~UdpServer();
 
   bool Start();

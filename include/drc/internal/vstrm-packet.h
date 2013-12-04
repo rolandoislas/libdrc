@@ -32,11 +32,8 @@ namespace drc {
 
 const size_t kVstrmHeaderSize = 16;
 
-// Limit our payload size to around 1400 bytes to work on systems with default
-// mtu configured (1500).
-//
-// TODO: does this make sense to do? The DRC camera and mic might be sending us
-// larger frames and require the MTU change anyway.
+// Limit our payload size to around 1400 bytes (DRC MTU is about 1800 bytes, so
+// increasing this could help performance in the future).
 const size_t kMaxVstrmPayloadSize = 1400;
 
 enum class VstrmFrameRate {
@@ -51,7 +48,7 @@ enum class VstrmFrameRate {
 class VstrmPacket {
  public:
   VstrmPacket();
-  VstrmPacket(const std::vector<byte>& packet);
+  explicit VstrmPacket(const std::vector<byte>& packet);
   virtual ~VstrmPacket();
 
   u16 SeqId() const;

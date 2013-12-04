@@ -31,6 +31,7 @@
 #include <drc/types.h>
 #include <mutex>
 #include <string>
+#include <vector>
 
 namespace drc {
 
@@ -81,7 +82,7 @@ void AudioStreamer::InitEventsAndRun() {
 
   NewRepeatedTimerEvent(kPacketIntervalMs * 1000000, [&](Event*) {
     std::vector<s16> samples;
-    PopSamples(samples, kSamplesPerPacket * 2);
+    PopSamples(&samples, kSamplesPerPacket * 2);
 
     AstrmPacket pkt;
     pkt.SetPacketType(AstrmPacketType::kAudioData);
@@ -90,7 +91,10 @@ void AudioStreamer::InitEventsAndRun() {
     pkt.SetVibrateFlag(false);
     pkt.SetSeqId(seqid);
     pkt.SetTimestamp(GetTimestamp());
-    pkt.SetPayload((byte*)samples.data(), samples.size() * 2);  // TODO: BE
+
+    // TODO(delroth): this assumes a little endian host system
+    pkt.SetPayload(reinterpret_cast<byte*>(samples.data()),
+                   samples.size() * sizeof (s16));
 
     astrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
     seqid = (seqid + 1) & 0x3FF;
@@ -108,13 +112,14 @@ void AudioStreamer::PushSamples(const std::vector<s16>& samples) {
   }
 }
 
-void AudioStreamer::PopSamples(std::vector<s16>& samples, u32 count) {
+void AudioStreamer::PopSamples(std::vector<s16>* samples, u32 count) {
   std::lock_guard<std::mutex> lk(samples_mutex_);
   if (samples_.size() < count * 2) {
-    samples.resize(0);
-    samples.resize(count);
+    samples->resize(0);
+    samples->resize(count);
   } else {
-    samples.insert(samples.end(), samples_.begin(), samples_.begin() + count);
+    samples->insert(samples->end(), samples_.begin(),
+                    samples_.begin() + count);
     samples_.erase(samples_.begin(), samples_.begin() + count);
   }
 }

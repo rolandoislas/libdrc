@@ -29,6 +29,7 @@
 #include <future>
 #include <map>
 #include <utility>
+#include <vector>
 
 struct SwsContext;
 
@@ -40,7 +41,7 @@ typedef std::tuple<u16, u16, PixelFormat, bool> VideoConverterParams;
 
 class VideoConverter {
  public:
-  typedef std::function<void(std::vector<byte>&)> DoneCallback;
+  typedef std::function<void(std::vector<byte>*)> DoneCallback;
 
   VideoConverter();
   virtual ~VideoConverter();
@@ -48,7 +49,7 @@ class VideoConverter {
   bool Start();
   void Stop();
 
-  void PushFrame(std::vector<byte>& frame, const VideoConverterParams& params);
+  void PushFrame(std::vector<byte>* frame, const VideoConverterParams& params);
 
   void SetDoneCallback(DoneCallback cb) { done_cb_ = cb; }
 

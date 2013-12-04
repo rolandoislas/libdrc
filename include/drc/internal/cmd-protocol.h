@@ -23,8 +23,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#ifndef INCLUDE_DRC_INTERNAL_CMD_PROTOCOL_H_
-#define INCLUDE_DRC_INTERNAL_CMD_PROTOCOL_H_
 
 #include <drc/internal/cmd-packet.h>
 #include <drc/internal/cmd-protocol.h>
@@ -93,9 +91,7 @@ class CmdClient : public ThreadedEventMachine {
 };
 
 class CmdServer {
-  // TODO: should probably reuse some of CmdClient.
+  // TODO(delroth): should probably reuse some of CmdClient.
 };
 
 }  // namespace drc
-
-#endif  // INCLUDE_DRC_INTERNAL_CMD_PROTOCOL_H_

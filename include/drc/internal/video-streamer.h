@@ -29,6 +29,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 namespace drc {
 
@@ -46,7 +47,7 @@ class VideoStreamer : public ThreadedEventMachine {
   void Stop();
 
   // Needs YUV420P at the right size (kScreenWidth x kScreenHeight).
-  void PushFrame(std::vector<byte>& frame);
+  void PushFrame(std::vector<byte>* frame);
 
   // Require an IDR to be sent next.
   void ResyncStream();
@@ -55,7 +56,7 @@ class VideoStreamer : public ThreadedEventMachine {
   virtual void InitEventsAndRun();
 
  private:
-  void LatchOnCurrentFrame(std::vector<byte>& latched_frame);
+  void LatchOnCurrentFrame(std::vector<byte>* latched_frame);
 
   std::unique_ptr<UdpClient> astrm_client_;
   std::unique_ptr<UdpClient> vstrm_client_;

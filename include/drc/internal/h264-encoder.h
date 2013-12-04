@@ -26,8 +26,8 @@
 
 #include <array>
 #include <drc/types.h>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 extern "C" {
 #include <x264.h>
@@ -61,5 +61,4 @@ class H264Encoder {
   bool curr_frame_idr_;
 };
 
-
-}
+}  // namespace drc

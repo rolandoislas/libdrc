@@ -30,6 +30,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 namespace drc {
 
@@ -37,7 +38,7 @@ class UdpClient;
 
 class AudioStreamer : public ThreadedEventMachine {
  public:
-  AudioStreamer(const std::string& dst);
+  explicit AudioStreamer(const std::string& dst);
   virtual ~AudioStreamer();
 
   bool Start();
@@ -50,7 +51,7 @@ class AudioStreamer : public ThreadedEventMachine {
   virtual void InitEventsAndRun();
 
  private:
-  void PopSamples(std::vector<s16>& samples, u32 count);
+  void PopSamples(std::vector<s16>* samples, u32 count);
 
   std::unique_ptr<UdpClient> astrm_client_;
 
@@ -58,4 +59,4 @@ class AudioStreamer : public ThreadedEventMachine {
   std::deque<s16> samples_;
 };
 
-}
+}  // namespace drc

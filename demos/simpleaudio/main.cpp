@@ -27,6 +27,7 @@
 #include <cmath>
 #include <drc/input.h>
 #include <drc/streamer.h>
+#include <vector>
 
 int main() {
   std::vector<drc::s16> samples(48000 * 2);
@@ -43,7 +44,7 @@ int main() {
   while (demo::HandleEvents()) {
     demo::TryPushingGLFrame();
 
-    demo::GetStreamer()->PollInput(input_data);
+    demo::GetStreamer()->PollInput(&input_data);
     if (input_data.valid && input_data.buttons & drc::InputData::kBtnA) {
       if (!was_pressed) {
         demo::GetStreamer()->PushAudSamples(samples);

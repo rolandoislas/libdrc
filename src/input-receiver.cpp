@@ -27,6 +27,7 @@
 #include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
 #include <mutex>
+#include <string>
 #include <vector>
 
 namespace drc {
@@ -48,8 +49,8 @@ const float kStickDeadZone = 0.1;
 InputReceiver::InputReceiver(const std::string& hid_bind)
     : server_(new UdpServer(hid_bind)) {
 
-  // TODO: these are the values from delroth's DRC. Make it use those from the
-  // UIC EEPROM.
+  // TODO(delroth): these are the values from my DRC. Make it use those from
+  // the UIC EEPROM.
   CalibrateWithPoints(329, 3672, 3738, 403, 53, 30, 802, 451);
 }
 
@@ -79,21 +80,21 @@ void InputReceiver::Stop() {
   server_->Stop();
 }
 
-void InputReceiver::Poll(InputData& data) {
+void InputReceiver::Poll(InputData* data) {
   std::lock_guard<std::mutex> lk(current_mutex_);
-  data = current_;
+  *data = current_;
 }
 
 void InputReceiver::CalibrateWithPoints(
     s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
     s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y) {
-  ts_ox_ = (float)(raw_2_x * ref_1_x - raw_1_x * ref_2_x) /
+  ts_ox_ = static_cast<float>(raw_2_x * ref_1_x - raw_1_x * ref_2_x) /
                   (raw_2_x - raw_1_x);
-  ts_w_ = (float)(ref_1_x - ref_2_x) / (raw_1_x - raw_2_x);
+  ts_w_ = static_cast<float>(ref_1_x - ref_2_x) / (raw_1_x - raw_2_x);
 
-  ts_oy_ = (float)(raw_2_y * ref_1_y - raw_1_y * ref_2_y) /
+  ts_oy_ = static_cast<float>(raw_2_y * ref_1_y - raw_1_y * ref_2_y) /
                   (raw_2_y - raw_1_y);
-  ts_h_ = (float)(ref_1_y - ref_2_y) / (raw_1_y - raw_2_y);
+  ts_h_ = static_cast<float>(ref_1_y - ref_2_y) / (raw_1_y - raw_2_y);
 }
 
 void InputReceiver::SetCurrent(const InputData& new_current) {
@@ -158,7 +159,7 @@ void InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
   ts_pressure |= ((msg[41] >> 4) & 7) << 6;
   ts_pressure |= ((msg[43] >> 4) & 7) << 9;
 
-  // TODO: make meaningful
+  // TODO(delroth): make meaningful
   data.ts_pressure = ts_pressure;
   data.ts_pressed = (ts_pressure != 0);
 
