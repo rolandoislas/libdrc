@@ -6,12 +6,20 @@
 Welcome to libdrc's documentation!
 ==================================
 
+libdrc is a library for application developers who want to use the capabilities
+of the Wii U GamePad in their software. It also provides the ability to
+simulate a Wii U GamePad to communicate with a Wii U.
+
+For more general details about the library, please visit the libdrc official
+website: `libdrc.org <http://libdrc.org>`_.
+
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-
+   installation
+   usage
 
 Indices and tables
 ==================
