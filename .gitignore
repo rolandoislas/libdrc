@@ -7,3 +7,4 @@ demos/tsdraw/tsdraw
 demos/simpleaudio/simpleaudio
 .depend
 libdrc.pc
+doc/_build

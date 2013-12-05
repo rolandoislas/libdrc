@@ -52,6 +52,9 @@ install: all
 uninstall:
 	@echo TODO
 
+doc:
+	make -C doc html
+
 Makefile.config:
 	$(error You must run ./configure first)
 
@@ -59,4 +62,4 @@ Makefile.config:
 .depend: Makefile.config
 	$(CXX) -MM $(CXXFLAGS) $(ALL_SRCS) > $@
 
-.PHONY: all libdrc demos clean distclean install uninstall
+.PHONY: all libdrc demos clean distclean install uninstall doc
