@@ -12,6 +12,7 @@ endif
 
 ALL_SRCS:=$(LIBDRC_SRCS) $(DEMOS_SRCS)
 ALL_OBJS:=$(ALL_SRCS:.cpp=.o)
+ALL_DEPENDS:=$(ALL_SRCS:.cpp=.d)
 
 all: libdrc demos
 
@@ -32,17 +33,17 @@ demos/$(1)/$(1): demos/$(1)/main.o demos/framework/framework.o libdrc.a
 endef
 $(foreach d,$(DEMOS_NAMES),$(eval $(call build_demo,$(d))))
 
-%.o: %.cpp Makefile.config
-	$(CXX) -c $(CXXFLAGS) $< -o $@
+%.o %.d: %.cpp Makefile.config
+	$(CXX) -MD -c $(CXXFLAGS) $< -o $(<:.cpp=.o)
 
 clean:
-	rm -f $(ALL_OBJS)
+	rm -f $(ALL_OBJS) $(ALL_DEPENDS)
 
 distclean: clean
-	rm -f .depend libdrc.pc Makefile.config libdrc.a libdrc.so $(DEMOS_BINS)
+	rm -f libdrc.pc Makefile.config libdrc.a libdrc.so $(DEMOS_BINS)
 
 install: all
-	install -d $(PREFIX)/lib $(PREFIX)/lib/pkgconfig 
+	install -d $(PREFIX)/lib $(PREFIX)/lib/pkgconfig
 	install -d $(PREFIX)/include/drc $(PREFIX)/include/drc/c
 	install libdrc.a libdrc.so $(PREFIX)/lib
 	install libdrc.pc $(PREFIX)/lib/pkgconfig
@@ -58,8 +59,6 @@ doc:
 Makefile.config:
 	$(error You must run ./configure first)
 
--include .depend
-.depend: Makefile.config
-	$(CXX) -MM $(CXXFLAGS) $(ALL_SRCS) > $@
+-include $(ALL_DEPENDS)
 
 .PHONY: all libdrc demos clean distclean install uninstall doc
