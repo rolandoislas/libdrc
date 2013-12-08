@@ -3,6 +3,8 @@ Major priority
 
 * Write docs and update README.
 
+* System input feeder (take the current drcuinput codebase and improve it).
+
 * Fix video streaming timing randomly desyncing.
 
 * Fix compatibility with recent DRC fw (video stream never syncing)
