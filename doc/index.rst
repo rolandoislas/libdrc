@@ -10,6 +10,10 @@ libdrc is a library for application developers who want to use the capabilities
 of the Wii U GamePad in their software. It also provides the ability to
 simulate a Wii U GamePad to communicate with a Wii U.
 
+It currently runs only on Linux and relies on C++11. A very small C wrapper to
+the library is available in order for non-C++11 programs to use the basic
+features of libdrc.
+
 For more general details about the library, please visit the libdrc official
 website: `libdrc.org <http://libdrc.org>`_.
 
