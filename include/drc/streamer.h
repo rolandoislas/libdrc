@@ -88,6 +88,11 @@ class Streamer {
   // refreshed at 180Hz.
   void PollInput(InputData* data);
 
+  // Enables system input feeding, which sends input data received from the
+  // GamePad directly to the operating system. This allows an application to
+  // use the basic GamePad input data transparently, without any code change.
+  void EnableSystemInputFeeder();
+
   // More minor features are exposed through the following methods. These
   // methods provide a "bool wait" argument in order to wait for the change to
   // actually be applied. If waiting is disabled (default), these methods are

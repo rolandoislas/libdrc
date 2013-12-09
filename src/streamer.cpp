@@ -27,6 +27,7 @@
 #include <drc/internal/cmd-protocol.h>
 #include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
+#include <drc/internal/uinput-feeder.h>
 #include <drc/internal/video-converter.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/streamer.h>
@@ -137,6 +138,12 @@ void Streamer::PushAudSamples(const std::vector<s16>& samples) {
 
 void Streamer::PollInput(InputData* data) {
   input_receiver_->Poll(data);
+}
+
+void Streamer::EnableSystemInputFeeder() {
+#ifdef __linux__
+  input_receiver_->AddCallback(FeedDrcInputToUinput);
+#endif
 }
 
 bool Streamer::SetLcdBacklight(int level, bool wait) {

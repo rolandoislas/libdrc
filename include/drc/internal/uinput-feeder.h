@@ -25,49 +25,9 @@
 #pragma once
 
 #include <drc/input.h>
-#include <drc/types.h>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <vector>
 
 namespace drc {
 
-class UdpServer;
-
-class InputReceiver {
- public:
-  typedef std::function<void(const InputData&)> Callback;
-
-  explicit InputReceiver(const std::string& hid_bind);
-  virtual ~InputReceiver();
-
-  bool Start();
-  void Stop();
-
-  void AddCallback(Callback cb) { cbs_.push_back(cb); }
-
-  void Poll(InputData* data);
-
-  void CalibrateWithPoints(s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
-                           s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y);
-
- private:
-  void SetCurrent(const InputData& new_current);
-
-  void ProcessInputMessage(const std::vector<byte>& data);
-  void ProcessInputTimeout();
-
-  std::unique_ptr<UdpServer> server_;
-
-  InputData current_;
-  std::mutex current_mutex_;
-
-  std::vector<Callback> cbs_;
-
-  // Touchscreen calibration parameters.
-  float ts_ox_, ts_oy_, ts_w_, ts_h_;
-};
+void FeedDrcInputToUinput(const InputData& inp);
 
 }  // namespace drc

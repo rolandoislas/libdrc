@@ -169,6 +169,11 @@ void InputReceiver::ProcessInputMessage(const std::vector<byte>& msg) {
 
   data.valid = true;
   SetCurrent(data);
+
+  // Run the callbacks
+  for (auto cb : cbs_) {
+    cb(data);
+  }
 }
 
 void InputReceiver::ProcessInputTimeout() {
