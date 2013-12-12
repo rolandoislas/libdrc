@@ -57,6 +57,7 @@ else
 fi
 
 # Libraries detection utils
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
 lib_present() {
     pkg-config --exists $@
 }
