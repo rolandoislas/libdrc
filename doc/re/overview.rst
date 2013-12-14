@@ -15,7 +15,7 @@ important and sometimes custom ICs (including 3 CPUs).
     firmware unit ran by DRC-WUP).
 
     This SoC is based on an ARM926EJ-S CPU and seems to be custom made for this
-    device. It contains no external markings that would allow identification of
+    device. It presents no external markings that would allow identification of
     a designed/manufacturer, but it is assumed to have been designed by
     MegaChips Corporation. The hardware H.264 decoder present inside seems to
     also be of a custom design.
@@ -37,7 +37,7 @@ important and sometimes custom ICs (including 3 CPUs).
     to communicate with a Wii U console.
 
     The firmware on this Broadcom chip runs on a Cortex-M3 CPU, which is
-    surprisingly more recent than the ARM926EJ-S running the main firmware.
+    amusingly more recent than the ARM926EJ-S running the main firmware.
 
 **UIC-WUP**
     A small embedded chip based on an STM8 CPU. It runs its own firmware
