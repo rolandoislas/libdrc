@@ -23,6 +23,7 @@ Contents:
    :maxdepth: 2
 
    installation
+   network
    usage
 
 Indices and tables
