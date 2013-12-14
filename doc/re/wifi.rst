@@ -21,6 +21,8 @@ M2. The standard specifies that the AuthKey is computed from ``KDF(KDK)``. In
 Nintendo's implementation, *AuthKey* is computed from ``KDF(KDK_ROT)`` where
 ``KDK_ROT`` is ``KDK`` rotated 3 bytes to the left.
 
+.. image:: drc-obfu.png
+
 The WPS handhake uses a PIN code which must be the same on console and GamePad.
 When pairing, the console displays the first part of the code on the TV screen
 using symbols: ♠ = 0, ♥ = 1, ♦ = 2, ♣ = 3. The second part of the PIN is
