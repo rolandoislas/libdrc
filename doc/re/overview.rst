@@ -1,6 +1,19 @@
 Overview of the internal workings
 =================================
 
+DRC and DRH
+-----------
+
+**DRC**
+    Codename for the main Wii U GamePad CPU. It is used in this documentation
+    and libdrc as a short name for the Wii U GamePad.
+
+**DRH**
+    The small part of the Wii U console that handles communication with the
+    GamePad. It is very similar to the DRC internally and acts very separately
+    from the rest of the console. It communicates with IOS (the Wii U operating
+    system) via USB.
+
 Hardware
 --------
 
@@ -31,7 +44,8 @@ important and sometimes custom ICs (including 3 CPUs).
     A Broadcom Wi-Fi chip that is not so custom - it was actually used in a few
     other products, including the Boxee TV box. The firmware running on it is a
     fairly standard Broadcom SDIO chip firmware with very slight alterations
-    from Nintendo. The `Wi-Fi Peculiarities`_ section explains these changes.
+    from Nintendo. The :doc:`Wi-Fi Peculiarities <wifi>` section explains these
+    changes.
 
     It is capable of 802.11n on 5GHz frequency bands, which is the requirement
     to communicate with a Wii U console.
