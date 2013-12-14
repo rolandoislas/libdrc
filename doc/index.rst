@@ -22,9 +22,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   installation
-   network
-   usage
+   installation.rst
+   network.rst
+   usage.rst
+   re/index.rst
 
 Indices and tables
 ==================
@@ -32,4 +33,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
