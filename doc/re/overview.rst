@@ -37,8 +37,8 @@ important and sometimes custom ICs (including 3 CPUs).
     relies a lot on the UIC, which it communicates with over a SPI bus.
 
     It is assumed to contain a very simple boot ROM that reads a secondary
-    bootloader (SPL) from the Flash. The `Boot process`_ section goes more in
-    details about this.
+    bootloader (SPL) from the Flash. The :doc:`Boot process <boot>` section
+    goes more in details about this.
 
 **BCM4319XKUBG**
     A Broadcom Wi-Fi chip that is not so custom - it was actually used in a few
