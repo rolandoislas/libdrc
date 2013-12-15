@@ -1,0 +1,22 @@
+.. raw:: html
+
+	<h1>Support <small>Need help?</small></h1>
+
+.. raw:: html
+
+	<div class="row">
+	<div class="col-md-6">
+		<h3>IRC channel</h3>
+		<p><a class="btn btn-primary" href="irc://irc.freenode.com/%23libdrc"><i class="fa fa-comments"></i> Join with your IRC client</a>
+		<a class="btn btn-default" href="http://chat.mibbit.com/?channel=%23libdrc&server=irc.freenode.com"><i class="fa fa-comments"></i> Mibbit (in-browser) chat</a></p>
+		<p>We can answer your questions on our IRC channel.</p>
+		<dl><dt>Server</dt><dd><tt>irc.freenode.com</tt></dd>
+		<dt>Channel name</dt><dd><tt>#libdrc</tt></dd></dl>
+	</div>
+
+	<div class="col-md-6">
+		<h3>Mailing list</h3>
+		<p><a class="btn btn-default" href="https://mailing.list/libdrc-help"><i class="fa fa-envelope"></i> Support mailing list</a></p>
+		<p>Please join the support mailing list for support.</p>
+	</div>
+	</div>

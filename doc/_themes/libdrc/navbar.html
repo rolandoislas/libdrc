@@ -1,0 +1,31 @@
+  <div id="navbar" class="{{ theme_navbar_class }} navbar-default {% if theme_navbar_fixed_top == 'true' -%} navbar-fixed-top{%- endif -%}">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        {% if show_logo == True %}
+        <a class="navbar-brand" href="{{ pathto('index') }}" title="Home">{% if theme_navbar_title -%}{{ theme_navbar_title|e }}{%- else -%}{{ project|e }}{%- endif -%}</a>
+        {% endif %}
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            {% for name, link in theme_navbar_links %}
+            <li {% if pagename == link %}class="active"{% endif %}><a href="{{ pathto(link) }}">{{ name }}</a></li>
+            {% endfor %}
+            {% block navbarextra %}{% endblock %}
+          </ul>
+
+          {#
+          {% block navbarsearch %}
+            {% include "navbarsearchbox.html" %}
+          {% endblock %}
+          #}
+        </div>
+    </div>
+  </div>

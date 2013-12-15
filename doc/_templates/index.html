@@ -1,0 +1,84 @@
+{% extends "!layout.html" %}
+
+{% set css_files = css_files + ['_static/landing.css'] %}
+{% set title = _('Home') %}
+
+{% block content %}
+
+{{ navBar() }}
+
+<div id="overall">
+<div id="landing-intro">
+
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-12 col-md-5">
+				<div id="landing-code">
+				{% include "index_code_example.html" %}
+				</div>
+			</div>
+			<div class="col-md-6 col-md-offset-1 tshadow">
+				<h2>Wii U development made easy.
+				</h2>
+				<h4>Bring some GamePad in your application!
+				</h4>
+				<p style="margin-top: 2em">
+					<a href="{{ pathto('download') }}" class="btn btn-dl btn-lg"><i class="fa fa-download"></i> Download</a>
+					<a href="{{ pathto('examples') }}" class="btn btn-learn btn-lg"><i class="fa fa-code"></i>  Learn</a>
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container">
+
+	<h2>Feature overview</h2>
+
+	<div class="row landing-row">
+		<div class="col-md-2 col-md-offset-1 icon-block">
+			<img src="{{ pathto('_static/img/landing-cpp.png', 1) }}" alt=".cpp" />
+		</div>
+		<div class="col-md-8">
+			<h3>Written in C++. Compatible with Linux.</h3>
+			<p>Windows and OS X support planned. Have an application in C? Not a problem, libdrc has a thin C wrapper supporting the main features.</p>
+		</div>
+	</div>
+
+	<div class="row landing-row">
+		<div class="col-md-9 text-right">
+			<h3>Standalone.</h3>
+			<p>No dependency, batteries included. You don't have to use any third-party framework to get started.</p>
+		</div>
+		<div class="col-md-2 text-center">
+			<img src="{{ pathto('_static/img/landing-standalone.png', 1) }}" alt="Battery" />
+		</div>
+	</div>
+
+	<div class="row landing-row">
+		<div class="col-md-2 col-md-offset-1 text-center">
+			<img src="{{ pathto('_static/img/landing-threads.png', 1) }}" alt="Multithreads" />
+		</div>
+		<div class="col-md-8">
+			<h3>Multithreaded.</h3>
+			<p>All the heavy lifting is made in separate threads to reduce impact on your application, because performance matters.</p>
+		</div>
+	</div>
+
+	<div class="row landing-row">
+		<div class="col-md-9 text-right">
+			<h3>Supports many inputs.</h3>
+			<p>Buttons, sticks and touchscreen work like a charm. Your imagination is the limit!</p>
+		</div>
+		<div class="col-md-2 text-center">
+			<img src="{{ pathto('_static/img/landing-buttons.png', 1) }}" alt="Buttons and sticks" />
+		</div>
+	</div>
+
+	<h2>Licencing</h2>
+	<p>The code is released under the BSD licence, to be the less intrusive possible.</p>
+
+</div>
+</div>
+{% endblock %}
+
