@@ -1,0 +1,4 @@
+Input streaming protocol
+========================
+
+TODO
