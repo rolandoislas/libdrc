@@ -142,7 +142,7 @@ how it was made. There are 4 main parts in the LVC firmware:
     * state - unknown
     * sync - unknown
     * time - unknown
-    * userif - unknown
+    * userif - local parsing of input data (for on-GamePad applications)
     * video - handles video stream decoding and playback
 
 **Application**
