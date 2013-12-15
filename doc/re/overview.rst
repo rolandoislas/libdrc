@@ -11,8 +11,8 @@ DRC and DRH
 **DRH**
     The small part of the Wii U console that handles communication with the
     GamePad. It is very similar to the DRC internally and acts very separately
-    from the rest of the console. It communicates with IOS (the Wii U operating
-    system) via USB.
+    from the rest of the console. It communicates with IOSu (the Wii U
+    operating system) via USB.
 
 Hardware
 --------
