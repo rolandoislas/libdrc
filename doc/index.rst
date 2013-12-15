@@ -20,7 +20,7 @@ website: `libdrc.org <http://libdrc.org>`_.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    installation.rst
    network.rst
