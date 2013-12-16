@@ -8,7 +8,9 @@
           <span class="icon-bar"></span>
         </button>
         {% if show_logo == True %}
-        <a class="navbar-brand" href="{{ pathto('index') }}" title="Home">{% if theme_navbar_title -%}{{ theme_navbar_title|e }}{%- else -%}{{ project|e }}{%- endif -%}</a>
+        <a class="navbar-brand" href="{{ pathto('index') }}" title="libdrc home">
+          <img class="logo" src="{{ pathto('_static/logo_pixel.svg', 1) }}" width="110" height="40" alt="libdrc" onerror="this.removeAttribute('onerror'); this.src='{{ pathto('_static/logo_pixel.png', 1) }}'" />
+        </a>
         {% endif %}
       </div>
 
