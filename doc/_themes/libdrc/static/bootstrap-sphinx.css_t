@@ -50,8 +50,9 @@ body:after {
 
 .navbar-inverse .navbar-brand {
 	color: #fff;
-	text-indent: -9999px;
-	width: 120px;
+	/*text-indent: -9999px;*/
+	width: 110px;
+	padding: 4px 0 0 0;
 }
 
 .page-top {
@@ -60,16 +61,6 @@ body:after {
 
 a:focus, button:focus {
 	outline: none;
-}
-
-.navbar-inverse h3 a, .navbar-inverse .navbar-brand {
-	background: transparent url("logo_pixel.png") no-repeat 0 center;
-	image-rendering: optimizeSpeed;
-	image-rendering: -moz-crisp-edges;
-	image-rendering: -webkit-optimize-contrast;
-	image-rendering: -o-crisp-edges;
-	image-rendering: optimize-contrast;
-	-ms-interpolation-mode: nearest-neighbor;
 }
 
 .navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form {
