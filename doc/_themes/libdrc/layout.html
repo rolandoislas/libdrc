@@ -73,6 +73,9 @@
             {% block body %}{% endblock %}
         </div>
         {% block sidebar2 %} {# possible location for sidebar #} {% endblock %}
+        {% if pagename not in theme_no_relation_pages %}
+            {% include "relations.html" %}
+        {% endif %}
     </div>
 </div>
 </div>

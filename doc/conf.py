@@ -107,6 +107,11 @@ html_theme_options = {
         ('Support', 'support'),
     ],
 
+    'no_relation_pages': [
+        'index', 'examples', 'download', 'docs/index', 'development',
+        'support',
+    ],
+
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

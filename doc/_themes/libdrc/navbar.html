@@ -18,7 +18,7 @@
           <ul class="nav navbar-nav">
             <li class="divider-vertical"></li>
             {% for name, link in theme_navbar_links %}
-            <li {% if pagename == link %}class="active"{% endif %}><a href="{{ pathto(link) }}">{{ name }}</a></li>
+            <li {% if pagename.split('/',1)[0] == link.split('/',1)[0] %}class="active"{% endif %}><a href="{{ pathto(link) }}">{{ name }}</a></li>
             {% endfor %}
             {% block navbarextra %}{% endblock %}
           </ul>
