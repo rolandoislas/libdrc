@@ -84,7 +84,11 @@ following:
 * Send as many packets as needed for each chunk, but the last packet of a chunk
   needs to have the ``chunk_end`` flag set.
 
+On top of that, the first packet of the first chunk of a frame has the
+``frame_begin`` flag set, and the last packet of the last chunk of a frame has
+the ``frame_end`` flag set.
+
 H.264 configuration
 -------------------
 
-TODO
+TODO: see ``src/video-streamer.cpp``.
