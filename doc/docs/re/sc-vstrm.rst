@@ -18,7 +18,7 @@ by an 8 byte extended header, followed by the compressed video data.
 Protocol header
 ---------------
 
-::
+.. code-block:: c
 
     struct VstrmHeader {
         u32 magic : 4;

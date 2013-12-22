@@ -22,7 +22,7 @@ video format information.
 Protocol header
 ---------------
 
-::
+.. code-block:: c
 
     struct AstrmHeader {
         u16 format : 3;
@@ -58,7 +58,7 @@ Video format header
 
 One video format packet is sent before each video frame is sent via ``vstrm``.
 
-::
+.. code-block:: c
 
     struct AstrmVideoFormat {
         u32 timestamp;

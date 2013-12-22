@@ -20,7 +20,7 @@ the console.
 Input data format
 -----------------
 
-::
+.. code-block:: c
 
     struct InputData {
         u16 seq_id;
