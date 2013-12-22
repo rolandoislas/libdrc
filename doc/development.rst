@@ -9,7 +9,7 @@
     <div class="row">
     <div class="col-md-6">
         <h3>Code repository</h3>
-        <p><a class="btn btn-primary" href="https://bitbucket.org/memahaxx/libdrc"><i class="fa fa-github"></i> Bitbucket project</a></p>
+        <p><a class="btn btn-primary" href="https://bitbucket.org/memahaxx/libdrc"><i class="fa fa-bitbucket"></i> Bitbucket project</a></p>
         <p>The primary codebase is hosted on Bitbucket. Feel free to fork the
         project and send us pull requests!</p>
     </div>
