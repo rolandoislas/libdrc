@@ -171,6 +171,7 @@ void VideoStreamer::InitEventsAndRun() {
   bool vstrm_inited = false;
   u16 vstrm_seqid = 0;
   std::vector<VstrmPacket> vstrm_packets;
+  bool send_idr = false;
 
   AstrmPacket astrm_packet;
   s32 next_timestamp = GetTimestamp();
@@ -181,12 +182,15 @@ void VideoStreamer::InitEventsAndRun() {
         vstrm_client_->Send(pkt.GetBytes(), pkt.GetSize());
       }
       vstrm_packets.clear();
+      if (send_idr && resync_requested) {
+        resync_requested = false;
+      }
     }
 
     s32 timestamp = GetTimestamp();
     LatchOnCurrentFrame(&encoding_frame);
     if (encoding_frame.size() > 0) {
-      bool send_idr = resync_requested || !vstrm_inited;
+      send_idr = resync_requested || !vstrm_inited;
       const H264ChunkArray& chunks = encoder_->Encode(encoding_frame, send_idr);
       GenerateVstrmPackets(&vstrm_packets, chunks, timestamp, send_idr,
                            &vstrm_inited, &vstrm_seqid);
@@ -199,8 +203,8 @@ void VideoStreamer::InitEventsAndRun() {
     timestamp = GetTimestamp();
     next_timestamp += static_cast<s32>(1000000.0/59.94);
     s32 delta_next = next_timestamp - timestamp;
-    if (delta_next < 1) {
-      delta_next = 1;
+    if (delta_next < 1000) {
+      delta_next = 1000;
     }
     timer_evt->RearmTimer((u64)delta_next * 1000);
 
