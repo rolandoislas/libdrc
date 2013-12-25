@@ -118,7 +118,7 @@ void FeedDrcInputToUinput(const InputData& inp) {
   for (int i = 0; i < 32; ++i) {
     evt[i].type = EV_KEY;
     evt[i].code = BTN_JOYSTICK + i;
-    evt[i].value = inp.buttons & (1 << i);
+    evt[i].value = !!(inp.buttons & (1 << i));
     memcpy(&evt[i].time, &tv, sizeof (tv));
   }
 
@@ -140,7 +140,9 @@ void FeedDrcInputToUinput(const InputData& inp) {
   memcpy(&evt[36].time, &tv, sizeof (tv));
 
   // Send the events to uinput.
-  write(uinput_fd, &evt, sizeof (evt));
+  for (auto& e : evt) {
+    write(uinput_fd, &e, sizeof (e));
+  }
 }
 
 }  // namespace drc
