@@ -61,7 +61,8 @@ void H264Encoder::CreateEncoder() {
   param.analyse.inter &= ~X264_ANALYSE_PSUB16x16;
 
   // The following two lines make x264 output 1 IDR and then all P.
-  param.i_keyint_min = param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
+  param.i_keyint_min = 10;
+  param.i_keyint_max = 30;
 
   param.i_scenecut_threshold = -1;
   param.i_csp = X264_CSP_I420;
@@ -71,6 +72,7 @@ void H264Encoder::CreateEncoder() {
   param.i_bframe_pyramid = 0;
   param.i_frame_reference = 1;
   param.b_constrained_intra = 1;
+  param.b_intra_refresh = 1;
   param.analyse.i_weighted_pred = 0;
   param.analyse.b_weighted_bipred = 0;
   param.analyse.b_transform_8x8 = 0;
@@ -159,6 +161,9 @@ const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame,
 }
 
 void H264Encoder::ProcessNalUnit(x264_nal_t* nal) {
+  if (nal->i_type == NAL_SEI) {
+    return;
+  }
   int mb_per_frame = ((kScreenWidth + 15) / 16) * ((kScreenHeight + 15) / 16);
   int mb_per_chunk = mb_per_frame / kH264ChunksPerFrame;
   int chunk_idx = nal->i_first_mb / mb_per_chunk;
