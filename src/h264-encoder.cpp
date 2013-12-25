@@ -37,7 +37,7 @@ extern "C" {
 namespace drc {
 
 namespace {
-const char* const kEncoderQuality = "fast";
+const char* const kEncoderQuality = "slow";
 
 void log_encoder_messages(void* data, int i_level, const char* format,
                           va_list va) {
