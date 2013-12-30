@@ -51,7 +51,7 @@ void drc_stop_streamer(struct drc_streamer* self);
 void drc_push_vid_frame(struct drc_streamer* self, const unsigned char* buffer,
                         unsigned int size, unsigned short width,
                         unsigned short height, enum drc_pixel_format pixfmt);
-void drc_enable_system_input_reader(struct drc_streamer* self);
+void drc_enable_system_input_feeder(struct drc_streamer* self);
 
 #ifdef __cplusplus
 }
