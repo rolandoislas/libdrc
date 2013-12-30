@@ -39,6 +39,11 @@ namespace drc {
 namespace {
 const char* const kEncoderQuality = "slow";
 
+// Enable intra prediction to flush decoding errors away. In practice we
+// shouldn't need this (the DRC will send libdrc a message when a frame fails
+// to be decoded), but at the moment it helps make decoding errors better.
+const bool kEnableIntraRefresh = true;
+
 void log_encoder_messages(void* data, int i_level, const char* format,
                           va_list va) {
 }
@@ -60,9 +65,12 @@ void H264Encoder::CreateEncoder() {
 
   param.analyse.inter &= ~X264_ANALYSE_PSUB16x16;
 
-  // The following two lines make x264 output 1 IDR and then all P.
-  param.i_keyint_min = 10;
-  param.i_keyint_max = 30;
+  if (kEnableIntraRefresh) {
+    param.i_keyint_min = 10;
+    param.i_keyint_max = 30;
+  } else {
+    param.i_keyint_min = param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
+  }
 
   param.i_scenecut_threshold = -1;
   param.i_csp = X264_CSP_I420;
@@ -72,7 +80,7 @@ void H264Encoder::CreateEncoder() {
   param.i_bframe_pyramid = 0;
   param.i_frame_reference = 1;
   param.b_constrained_intra = 1;
-  param.b_intra_refresh = 1;
+  param.b_intra_refresh = kEnableIntraRefresh;
   param.analyse.i_weighted_pred = 0;
   param.analyse.b_weighted_bipred = 0;
   param.analyse.b_transform_8x8 = 0;
