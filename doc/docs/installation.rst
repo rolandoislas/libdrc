@@ -10,6 +10,12 @@ Building libdrc requires a few system tools and libraries to be installed:
 * A recent version of ffmpeg and its libraries (libavutil, libswscale).
 * If you want to build the libdrc demos, SDL and GLEW are also required.
 
+To install a recent version of ffmpeg on Ubuntu 13.10::
+
+    sudo add-apt-repository ppa:samrog131/ppa
+    sudo apt-get update
+    sudo apt-get install libswscale-ffmpeg-dev libavutil-ffmpeg-dev
+
 Patched dependencies
 --------------------
 
