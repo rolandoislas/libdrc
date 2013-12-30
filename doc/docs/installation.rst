@@ -34,7 +34,7 @@ repository: `memahaxx/libdrc <https://bitbucket.org/memahaxx/libdrc>`_.
 
     git clone https://bitbucket.org/memahaxx/libdrc
     cd libdrc
-    PKG_CONFIG_PATH=$PATCHED_X264_PREFIX:$PKG_CONFIG_PATH ./configure
+    PKG_CONFIG_PATH=$PATCHED_X264_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH ./configure
     make
 
 You should then be able to run the libdrc demos from the `demos` directories.
