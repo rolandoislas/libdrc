@@ -6,20 +6,16 @@ Current version: 1.0-dev
 Supported features
 ------------------
 
-* None
+* OS support: Linux only
+* Streams and encodes video and audio data from a PC to a GamePad.
+* Handles input data from a GamePad and passes it to either the application or
+  the operating system
 
 Planned features
 ----------------
 
-* Support for encoding and decoding Wii U Gamepad communication protocols:
-  * Video (``vstrm``)
-  * Audio (``astrm``)
-  * Input (``hid``)
-  * Command (``cmd``)
-  * Message (``msg``)
-
-* Support for encoding and packeting video streams as expected by a DRC
-* Support for feeding input data back to the operating system via UInput
+* Receiving and displaying video from a Wii U on a PC.
+* Generating HID packets and sending to a Wii U.
 
 Requirements
 ------------
