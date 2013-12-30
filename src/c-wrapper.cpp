@@ -49,10 +49,24 @@ void drc_stop_streamer(struct drc_streamer* self) {
 
 void drc_push_vid_frame(struct drc_streamer* self, const unsigned char* buffer,
                         unsigned int size, unsigned short width,
-                        unsigned short height, enum drc_pixel_format pixfmt) {
+                        unsigned short height, enum drc_pixel_format pixfmt,
+                        enum drc_flipping_mode flipmode) {
+  drc::Streamer::FlippingMode flipmode_cpp;
+
+  switch (flipmode) {
+    case DRC_FLIP_VERTICALLY:
+      flipmode_cpp = drc::Streamer::FlipVertically;
+      break;
+
+    case DRC_NO_FLIP:
+    default:
+      flipmode_cpp = drc::Streamer::NoFlip;
+  };
+
   std::vector<drc::byte> frame(buffer, buffer + size);
   self->streamer.PushVidFrame(&frame, width, height,
-                              static_cast<drc::PixelFormat>(pixfmt));
+                              static_cast<drc::PixelFormat>(pixfmt),
+                              flipmode_cpp);
 }
 
 void drc_enable_system_input_feeder(struct drc_streamer* self) {
