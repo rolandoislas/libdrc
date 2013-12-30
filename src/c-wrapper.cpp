@@ -54,4 +54,8 @@ void drc_push_vid_frame(struct drc_streamer* self, const unsigned char* buffer,
   self->streamer.PushVidFrame(&frame, width, height,
                               static_cast<drc::PixelFormat>(pixfmt));
 }
+
+void drc_enable_system_input_reader(struct drc_streamer* self) {
+  self->streamer.EnableSystemInputReader();
+}
 }
