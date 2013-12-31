@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
+#include <stdlib.h>
 
 namespace drc {
 
