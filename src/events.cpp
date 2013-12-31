@@ -126,12 +126,15 @@ void EventMachine::ProcessEvents() {
       }
 
       Event* evt = it->second.get();
+      
+      if (evt->read_size) {
+        std::vector<byte> buffer(evt->read_size);
+        read(evt->fd, buffer.data(), evt->read_size);
+      }
+
       bool keep = evt->callback(evt);
       if (!keep) {
         events_.erase(it);
-      } else if (evt->read_size) {
-        std::vector<byte> buffer(evt->read_size);
-        read(evt->fd, buffer.data(), evt->read_size);
       }
     }
   }
