@@ -38,8 +38,7 @@ namespace drc {
 namespace {
 
 int GetInterfaceOfIpv4(const std::string& addr, std::string* out) {
-  struct ifaddrs* ifa;
-  struct ifaddrs* p;
+  struct ifaddrs* ifa = NULL;
   char ip_buffer[16];
   int rv = EAI_FAIL;
 
@@ -47,16 +46,14 @@ int GetInterfaceOfIpv4(const std::string& addr, std::string* out) {
     return rv;
   }
 
-  p = ifa;
+  struct ifaddrs* p = ifa;
   while (p) {
     if ((p->ifa_flags & IFF_RUNNING) && (p->ifa_addr != NULL)) {
       if (p->ifa_addr->sa_family == AF_INET) {
-        rv = getnameinfo(p->ifa_addr, sizeof(struct sockaddr_in), ip_buffer,
-                         sizeof(ip_buffer), NULL, 0, NI_NUMERICHOST);
-        if (rv == 0) {
-          if (addr == ip_buffer) {
-            break;
-          }
+        rv = getnameinfo(p->ifa_addr, sizeof (struct sockaddr_in), ip_buffer,
+                         sizeof (ip_buffer), NULL, 0, NI_NUMERICHOST);
+        if ((rv == 0) && (addr == ip_buffer)) {
+          break;
         }
       }
     }
