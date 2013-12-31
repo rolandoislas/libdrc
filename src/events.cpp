@@ -39,7 +39,9 @@ namespace drc {
 
 void TriggerableEvent::Trigger() {
   u64 val = 1;
-  write(fd, &val, sizeof (val));
+  if (write(fd, &val, sizeof (val)) != sizeof (val)) {
+    perror("write failed - TriggerableEvent::Trigger");
+  }
 }
 
 void TimerEvent::RearmTimer(u64 nanoseconds) {
@@ -126,10 +128,11 @@ void EventMachine::ProcessEvents() {
       }
 
       Event* evt = it->second.get();
-      
       if (evt->read_size) {
         std::vector<byte> buffer(evt->read_size);
-        read(evt->fd, buffer.data(), evt->read_size);
+        if (read(evt->fd, buffer.data(), evt->read_size) != evt->read_size) {
+          perror("read failed - EventMachine::ProcessEvents");
+        }
       }
 
       bool keep = evt->callback(evt);
