@@ -83,7 +83,9 @@ int InitUinput() {
   ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY);
 
   // Create the device.
-  write(uinput_fd, &dev, sizeof (dev));
+  if (write(uinput_fd, &dev, sizeof (dev)) != sizeof (dev)) {
+    perror("write failed - creating the device");
+  }
   ioctl(uinput_fd, UI_DEV_CREATE);
 
   return uinput_fd;
@@ -141,7 +143,9 @@ void FeedDrcInputToUinput(const InputData& inp) {
 
   // Send the events to uinput.
   for (auto& e : evt) {
-    write(uinput_fd, &e, sizeof (e));
+    if (write(uinput_fd, &e, sizeof (e)) != sizeof (e)) {
+      perror("write failed - sending an event to uinput");
+    }
   }
 }
 

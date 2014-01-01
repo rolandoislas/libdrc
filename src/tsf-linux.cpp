@@ -92,7 +92,9 @@ int GetTsf(u64 *tsf) {
       return -1;
     }
   }
-  pread(fd, tsf, sizeof(tsf), 0);
+  if (pread(fd, tsf, sizeof (*tsf), 0) != sizeof (*tsf)) {
+    perror("pread failed - GetTsf");
+  }
   return 0;
 }
 
