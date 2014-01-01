@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-TMPDIR=`mktemp -d -t tmp`
+TMPDIR=`mktemp -d -t tmpXXXXXXXX`
 trap "rm -rf $TMPDIR" EXIT
 
 usage() {
