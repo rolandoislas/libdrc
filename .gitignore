@@ -7,4 +7,4 @@ demos/3dtest/3dtest
 demos/tsdraw/tsdraw
 demos/simpleaudio/simpleaudio
 libdrc.pc
-doc/_build
+web/_build
