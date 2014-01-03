@@ -56,7 +56,7 @@ There are two methods to pair a GamePad with a computer:
 
   3. In a terminal, execute::
 
-         sudo ./wpa_supplicant -i wlanX -c get_psk.conf
+         sudo ./wpa_supplicant -Dnl80211 -i wlanX -c get_psk.conf
 
      Replace ``wlanX`` with the correct network interface.
 
@@ -75,14 +75,15 @@ There are two methods to pair a GamePad with a computer:
          scan_results
 
   8. On the returned list, you should see an entry with an SSID along the lines
-     of ``WiiUAABBCCDDEEFF``. Take a note of the BSSID for this access point.
+     of ``WiiUAABBCCDDEEFF_STA1``. Take a note of the BSSID for this access
+     point.
 
   9. In ``wpa_cli``, type::
 
          wps_pin BSSID PIN
 
      where ``BSSID`` is the BSSID you noted in the previous step, and ``PIN``
-     is the PIN you calculated from the `Pairing information <http://libdrc.org/docs/re/wifi.html#pairing`_.
+     is the PIN you calculated from the `Pairing information <http://libdrc.org/docs/re/wifi.html#pairing>`_.
 
   10. You should see some output, including ``<3>WPS-CRED-RECEIVED`` followed
       by ``<3>WPS-SUCCESS``.
