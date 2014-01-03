@@ -228,9 +228,9 @@ Miscellaneous commands.
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
 | 0x06   | 0            | 772        | Returns the 4 byte UIC firmware version followed by the first 768 bytes of the UIC EEPROM.          |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
-| 0x08   | 1            | ?          | Unknown, sent when turning off the GamePad display (from the Home menu).                            |
+| 0x08   | 1            | ?          | Unknown, sent when turning off the GamePad display (from the Home menu). Payload 00 disables video. |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
-| 0x0a   | 1            | ?          | Unknown, sent when turning off the GamePad display (from the Home menu).                            |
+| 0x0a   | 1            | ?          | Unknown, sent when turning off the GamePad display (from the Home menu). Payload 00 disables sound. |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
 | 0x0b   | 0            | 1          | Unknown, returns -1 or 0.                                                                           |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
@@ -242,8 +242,8 @@ Miscellaneous commands.
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
 | 0x10   | 531          | ?          | Issues an ICTAG (NFC) command. See the (non-existing) NFC command documentation.                    |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
-| 0x11   | 520          | ?          | Issues an IRCOM command. First byte of the payload: 0 -> connect, 1 -> disconnect, 2 -> send,       |
-|        |              |            | 3 -> receive.                                                                                       |
+| 0x11   | Max. 520     | Max. 520   | Issues an IRCOM command. First byte of the payload: 0 -> connect, 1 -> send, 2 -> receive,          |
+|        |              |            | 3 -> disconnect.                                                                                    |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
 | 0x14   | 1            | 0          | Sets the LCD brightness, between 1 (minimum) and 5 (maximum, included).                             |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
@@ -298,6 +298,9 @@ camera and microphone.
     };
 
 The meaning and values of most of these fields is not known yet.
+
+This command is issued every second. Recent versions of the GamePad firmware
+will only show the video stream after receiving one such command.
 
 Time command
 ------------
