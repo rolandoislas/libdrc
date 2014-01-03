@@ -137,11 +137,10 @@ int main() {
 
   drc::InputData input_data;
   while (demo::HandleEvents()) {
-    demo::TryPushingGLFrame();
-
     demo::GetStreamer()->PollInput(&input_data);
     RenderFrame(input_data);
 
+    demo::TryPushingGLFrame();
     demo::SwapBuffers();
   }
 
