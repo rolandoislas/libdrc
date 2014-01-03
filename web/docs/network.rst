@@ -47,7 +47,7 @@ There are two methods to pair a GamePad with a computer:
   1. Download and build ``memahaxx/drc-hostap``. Make sure ``CONFIG_WPS`` and
      ``CONFIG_TENDONIN`` are enabled for both hostapd and wpa_supplicant.
      Ensure that no other program (e.g. a system ``wpa_supplicant`` or
-     ``NetworkManager`` is currently managing the target interface (``wlanX``).
+     ``NetworkManager`` is currently managing the target interface ``wlanX``).
 
   2. Make a new config ``get_psk.conf`` file consisting of these two lines::
 
