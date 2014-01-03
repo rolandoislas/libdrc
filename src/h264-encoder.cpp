@@ -44,16 +44,83 @@ const char* const kEncoderQuality = "slow";
 // to be decoded), but at the moment it helps make decoding errors better.
 const bool kEnableIntraRefresh = true;
 
-void log_encoder_messages(void* data, int i_level, const char* format,
-                          va_list va) {
+// Debugging feature to dump the encoded h264 stream to a .h264 file. If
+// enabled, a file called "dump.h264" will be created in the current directory.
+const bool kDebugDumpToFile = false;
+
+void LogEncoderMessages(void* data, int i_level, const char* format,
+                        va_list va) {
 }
+
+void DumpH264Headers(FILE* fp) {
+  u8 nal_start_code[] = { 0x00, 0x00, 0x00, 0x01 };
+  u8 gamepad_sps[] = { 0x67, 0x64, 0x00, 0x20, 0xac, 0x2b, 0x40,
+                       0x6c, 0x1e, 0xf3, 0x68 };
+  u8 gamepad_pps[] = { 0x68, 0xee, 0x06, 0x0c, 0xe8 };
+
+  fwrite(nal_start_code, sizeof (nal_start_code), 1, fp);
+  fwrite(gamepad_sps, sizeof (gamepad_sps), 1, fp);
+  fwrite(nal_start_code, sizeof (nal_start_code), 1, fp);
+  fwrite(gamepad_pps, sizeof (gamepad_pps), 1, fp);
+}
+
+size_t NalEscape(byte* dst, const byte* src, size_t size) {
+  byte* dst_start = dst;
+  const byte* end = src + size;
+  if (src < end) {
+    *dst++ = *src++;
+  }
+  if (src < end) {
+    *dst++ = *src++;
+  }
+
+  while (src < end) {
+    if (src[0] <= 0x03 && !dst[-2] && !dst[-1]) {
+      *dst++ = 0x03;
+    }
+    *dst++ = *src++;
+  }
+
+  return dst - dst_start;
+}
+
+void DumpH264Frame(FILE* fp, const H264ChunkArray& chunks, bool is_idr) {
+  // TODO(delroth): make this a property of the encoder.
+  static u32 frame_number = 0;
+
+  u8 nal_start_code[] = { 0x00, 0x00, 0x00, 0x01 };
+  u8 nal_idr_frame[] = { 0x25, 0xb8, 0x04, 0xff };
+  u8 nal_p_frame[] = { 0x21, 0xe0, 0x03, 0xff };
+
+  fwrite(nal_start_code, sizeof (nal_start_code), 1, fp);
+
+  if (is_idr) {
+    frame_number = 0;
+    fwrite(nal_idr_frame, sizeof (nal_idr_frame), 1, fp);
+  } else {
+    frame_number = (frame_number + 1) & 0xFF;
+    nal_p_frame[1] |= frame_number >> 3;
+    nal_p_frame[2] |= frame_number << 5;
+    fwrite(nal_p_frame, sizeof (nal_p_frame), 1, fp);
+  }
+
+  for (const auto& chunk : chunks) {
+    std::vector<byte> escaped(2 * std::get<1>(chunk));
+    size_t escaped_size = NalEscape(escaped.data(), std::get<0>(chunk),
+                                    std::get<1>(chunk));
+    fwrite(escaped.data(), escaped_size, 1, fp);
+  }
+}
+
 }  // namespace
 
-H264Encoder::H264Encoder() {
+H264Encoder::H264Encoder()
+    : encoder_(nullptr), dump_file_(nullptr) {
   CreateEncoder();
 }
 
 H264Encoder::~H264Encoder() {
+  DestroyEncoder();
 }
 
 void H264Encoder::CreateEncoder() {
@@ -108,13 +175,32 @@ void H264Encoder::CreateEncoder() {
 
   // Logging parameters.
   param.i_log_level = X264_LOG_INFO;
-  param.pf_log = log_encoder_messages;
+  param.pf_log = LogEncoderMessages;
 
   x264_param_apply_profile(&param, "main");
 
   encoder_ = x264_encoder_open(&param);
   assert(x264_encoder_maximum_delayed_frames(encoder_) == 0 ||
              "Encoder parameters will cause frames to be delayed");
+
+  // If dumping to file, open the dump file here.
+  if (kDebugDumpToFile) {
+    dump_file_ = fopen("dump.h264", "wb");
+    if (dump_file_) {
+      DumpH264Headers(dump_file_);
+    }
+  }
+}
+
+void H264Encoder::DestroyEncoder() {
+  if (encoder_) {
+    x264_encoder_close(encoder_);
+    encoder_ = nullptr;
+  }
+  if (dump_file_) {
+    fclose(dump_file_);
+    dump_file_ = nullptr;
+  }
 }
 
 const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame,
@@ -164,6 +250,11 @@ const H264ChunkArray& H264Encoder::Encode(const std::vector<byte>& frame,
 
   // Encode!
   x264_encoder_encode(encoder_, &nals, &nals_count, &input, &output);
+
+  // If debug dumping is enabled, create a frame from the generated chunks.
+  if (dump_file_) {
+    DumpH264Frame(dump_file_, chunks_, idr);
+  }
 
   return chunks_;
 }

@@ -25,6 +25,7 @@
 #pragma once
 
 #include <array>
+#include <cstdio>
 #include <drc/types.h>
 #include <tuple>
 #include <vector>
@@ -54,11 +55,13 @@ class H264Encoder {
   static void ProcessNalUnitTrampoline(x264_t* h, x264_nal_t* nal, void* arg);
 
   void CreateEncoder();
+  void DestroyEncoder();
 
   x264_t* encoder_;
   H264ChunkArray chunks_;
   int num_chunks_encoded_;
   bool curr_frame_idr_;
+  FILE* dump_file_;
 };
 
 }  // namespace drc
