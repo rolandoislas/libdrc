@@ -38,8 +38,63 @@ To check if the patched module is being used, try::
 Pairing the Wii U GamePad with a computer
 -----------------------------------------
 
-TODO: instructions for hostapd and WPS (most of it already on drc.delroth.net,
-needs to be re-tested and ReSTed).
+There are two methods to pair a GamePad with a computer:
+
+* Use a GamePad that has previously paired with a Wii U console. Connect the
+  computer in client mode to the Wii U console to do the WPS negotiation and
+  obtain the same details.
+
+  1. Download and build ``memahaxx/drc-hostap``. Make sure ``CONFIG_WPS`` and
+     ``CONFIG_TENDONIN`` are enabled for both hostapd and wpa_supplicant.
+     Ensure that no other program (e.g. a system ``wpa_supplicant`` or
+     ``NetworkManager`` is currently managing the target interface (``wlanX``).
+
+  2. Make a new config ``get_psk.conf`` file consisting of these two lines::
+
+         ctrl_interface=/var/run/wpa_supplicant_drc
+         update_config=1
+
+  3. In a terminal, execute::
+
+         sudo ./wpa_supplicant -i wlanX -c get_psk.conf
+
+     Replace ``wlanX`` with the correct network interface.
+
+  4. In a separate terminal, execute::
+
+         sudo ./wpa_cli -p /var/run/wpa_supplicant_drc
+
+  5. Press the sync button twice on your Wii U console.
+
+  6. In ``wpa_cli``, type::
+
+         scan
+
+  7. Once you see ``<3>CTRL-EVENT-SCAN-RESULTS`` type::
+
+         scan_results
+
+  8. On the returned list, you should see an entry with an SSID along the lines
+     of ``WiiUAABBCCDDEEFF``. Take a note of the BSSID for this access point.
+
+  9. In ``wpa_cli``, type::
+
+         wps_pin BSSID PIN
+
+     where ``BSSID`` is the BSSID you noted in the previous step, and ``PIN``
+     is the PIN you calculated from the `Pairing information <http://libdrc.org/docs/re/wifi.html#pairing`_.
+
+  10. You should see some output, including ``<3>WPS-CRED-RECEIVED`` followed
+      by ``<3>WPS-SUCCESS``.
+
+  11. Ctrl+C ``wpa_supplicant``.
+
+  12. To see your PSK, type::
+
+          cat get_psk.conf
+
+* Have a computer host WPS and sync a GamePad directly with it. TODO: write
+  instructions for this method.
 
 Setting up the Wi-Fi access point
 ---------------------------------
