@@ -209,7 +209,7 @@ Service ID 4
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
 | 0x19   | 0            | 12         | Unknown.                                                                                            |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
-| 0x1a   | 0            | XXX        | Shuts down the GamePad.                                                                             |
+| 0x1a   | 0            | XXX        | Shuts down the GamePad if flags = 0x42.                                                             |
 +--------+--------------+------------+-----------------------------------------------------------------------------------------------------+
 
 Service ID 5
@@ -270,7 +270,9 @@ camera and microphone.
 .. code-block:: c
 
     struct UvcUacCommand {
-        u32 unknown_0;
+        u8 f1;
+        u16 unknown_0;
+        u8 f3;
         u8 mic_enable;
         u8 mic_mute;
         s16 mic_volume;
@@ -301,6 +303,9 @@ The meaning and values of most of these fields is not known yet.
 
 This command is issued every second. Recent versions of the GamePad firmware
 will only show the video stream after receiving one such command.
+
+Setting f3 to 1 switches the GamePad to vWii mode, setting it to 3 shuts it down
+(this is how the GamePad is shut down in vWii mode).
 
 Time command
 ------------
