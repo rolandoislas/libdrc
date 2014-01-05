@@ -171,8 +171,8 @@ void CmdClient::SendQuery(u16 seqid, CmdState* cmd_st) {
   pkt.SetSeqId(seqid);
   pkt.SetPayload(cmd_st->query_payload.data(), cmd_st->query_payload.size());
 
-  cmd_st->timeout_evt = NewRepeatedTimerEvent(kTimeoutMs * 1000000,
-                                              [&](Event* ev) {
+  cmd_st->timeout_evt = NewTimerEvent(kTimeoutMs * 1000000,
+                                      [&](Event* ev) {
     return RetryOperation(seqid);
   });
 
@@ -197,10 +197,10 @@ bool CmdClient::RetryOperation(u16 seqid) {
     std::vector<byte> dummy;
     state->reply_callback(false, dummy);
     RemoveState(seqid);
+  } else {
+    SendQuery(seqid, state);
   }
-
-  SendQuery(seqid, state);
-  return true;
+  return false;
 }
 
 }  // namespace drc
