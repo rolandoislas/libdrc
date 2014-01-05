@@ -44,10 +44,12 @@ void TriggerableEvent::Trigger() {
   }
 }
 
-void TimerEvent::RearmTimer(u64 nanoseconds) {
+void TimerEvent::RearmTimer(u64 ns) {
+  s64 seconds = ns / 1000000000;
+  ns = ns % 1000000000;
   struct itimerspec its = {
     { 0, 0 },
-    { 0, (s64)nanoseconds }
+    { seconds, (s64)ns }
   };
   timerfd_settime(fd, 0, &its, NULL);
 }
@@ -71,9 +73,11 @@ TriggerableEvent* EventMachine::NewTriggerableEvent(Event::CallbackType cb) {
 }
 
 TimerEvent* EventMachine::NewTimerEvent(u64 ns, Event::CallbackType cb) {
+  s64 seconds = ns / 1000000000;
+  ns = ns % 1000000000;
   struct itimerspec its = {
     { 0, 0 },
-    { 0, (s64)ns }
+    { seconds, (s64)ns }
   };
 
   int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
@@ -81,11 +85,13 @@ TimerEvent* EventMachine::NewTimerEvent(u64 ns, Event::CallbackType cb) {
   return reinterpret_cast<TimerEvent*>(NewEvent(fd, sizeof (u64), cb));
 }
 
-Event* EventMachine::NewRepeatedTimerEvent(u64 nanoseconds,
-                                           Event::CallbackType cb) {
+Event* EventMachine::NewRepeatedTimerEvent(u64 ns, Event::CallbackType cb) {
+  s64 seconds = ns / 1000000000;
+  ns = ns % 1000000000;
+  
   struct itimerspec its = {
-    { 0, (s64)nanoseconds },
-    { 0, 1 }
+    { seconds, (s64)ns },
+    { seconds, (s64)ns }
   };
 
   int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
