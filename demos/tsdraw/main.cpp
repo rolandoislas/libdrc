@@ -48,7 +48,7 @@ const int kNumColors =
     static_cast<int>(sizeof (kColors) / sizeof (kColors[0]));
 
 void PutPixel(drc::u8* pixels, int x, int y, drc::u32 col) {
-  drc::u8* ppix = pixels + 4 * (y * drc::kScreenWidth + x);
+  drc::u8* ppix = pixels + 4 * (y * demo::GetWidth() + x);
   ppix[0] = col >> 8;
   ppix[1] = col >> 16;
   ppix[2] = col >> 24;
@@ -145,10 +145,10 @@ void RenderFrame(SDL_Surface* surface, const drc::InputData& input_data) {
   }
 
   if (input_data.buttons & drc::InputData::kBtnA) {
-    memset(pixels, 0, 4 * drc::kScreenWidth * drc::kScreenHeight);
+    memset(pixels, 0, 4 * demo::GetWidth() * demo::GetHeight());
   } else if (input_data.ts_pressed) {
-    int x = static_cast<int>(input_data.ts_x * (drc::kScreenWidth - 1));
-    int y = static_cast<int>(input_data.ts_y * (drc::kScreenHeight - 1));
+    int x = static_cast<int>(input_data.ts_x * (demo::GetWidth() - 1));
+    int y = static_cast<int>(input_data.ts_y * (demo::GetHeight() - 1));
 
     if (has_previous_point) {
       DrawLine(pixels, x, y, previous_point_x, previous_point_y,
@@ -173,7 +173,17 @@ void RenderFrame(SDL_Surface* surface, const drc::InputData& input_data) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  demo::Init("tsdraw", demo::kStreamerSDLDemo);
+  int width = drc::kScreenWidth;
+  int height = drc::kScreenHeight;
+
+  // if the width/height is outside range, it's ok because
+  // framework checks and sets to native w/h if invalid
+  if (argc == 3) {
+    width = atoi(argv[1]);
+    height = atoi(argv[2]);
+  }
+
+  demo::Init("tsdraw", demo::kStreamerSDLDemo, width, height);
 
   drc::InputData input_data;
   SDL_Surface* surface = SDL_GetVideoSurface();
@@ -183,9 +193,9 @@ int main(int argc, char** argv) {
     SDL_LockSurface(surface);
     std::vector<drc::u8> pixels(
         (drc::u8*)surface->pixels,
-        (drc::u8*)surface->pixels + drc::kScreenWidth * drc::kScreenHeight * 4);
-    demo::GetStreamer()->PushVidFrame(&pixels, drc::kScreenWidth,
-                                      drc::kScreenHeight,
+        (drc::u8*)surface->pixels + demo::GetWidth() * demo::GetHeight() * 4);
+    demo::GetStreamer()->PushVidFrame(&pixels, demo::GetWidth(),
+                                      demo::GetHeight(),
                                       drc::PixelFormat::kBGRA);
     RenderFrame(surface, input_data);
     SDL_UnlockSurface(surface);

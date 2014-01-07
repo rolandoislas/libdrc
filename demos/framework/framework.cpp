@@ -37,9 +37,11 @@ namespace demo {
 
 namespace {
 drc::Streamer* g_streamer;
+drc::u16 g_width;
+drc::u16 g_height;
 }  // namespace
 
-void Init(const char* name, DemoMode mode) {
+void Init(const char* name, DemoMode mode, int width, int height) {
   std::string win_title = "libdrc demo - ";
   win_title += name;
 
@@ -59,7 +61,20 @@ void Init(const char* name, DemoMode mode) {
   if (mode == kStreamerGLDemo) {
     flags |= SDL_OPENGL;
   }
-  SDL_SetVideoMode(drc::kScreenWidth, drc::kScreenHeight, 32, flags);
+
+  if ((width > drc::kScreenWidth) || (width <= 0)) {
+    g_width = drc::kScreenWidth;
+  } else {
+    g_width = width;
+  }
+
+  if ((height > drc::kScreenWidth) || (height <= 0)) {
+    g_height = drc::kScreenHeight;
+  } else {
+    g_height = height;
+  }
+
+  SDL_SetVideoMode(g_width, g_height, 32, flags);
   SDL_WM_SetCaption(win_title.c_str(), NULL);
 
   if (mode == kStreamerGLDemo) {
@@ -86,6 +101,14 @@ drc::Streamer* GetStreamer() {
   return g_streamer;
 }
 
+drc::u16 GetWidth() {
+  return g_width;
+}
+
+drc::u16 GetHeight() {
+  return g_height;
+}
+
 bool HandleEvents() {
   SDL_Event evt;
 
@@ -105,8 +128,8 @@ std::vector<drc::u8> TryReadbackFromGL() {
 
   // Very stupid implementation - ideally the GPU should flip the image
   // vertically and encode to YUV420.
-  ret.resize(drc::kScreenWidth * drc::kScreenHeight * 4);
-  glReadPixels(0, 0, drc::kScreenWidth, drc::kScreenHeight, GL_BGRA,
+  ret.resize(g_width * g_height * 4);
+  glReadPixels(0, 0, g_width, g_height, GL_BGRA,
                GL_UNSIGNED_BYTE, ret.data());
 
   return ret;
@@ -120,7 +143,7 @@ void TryPushingGLFrame() {
 
   std::vector<drc::u8> frame = demo::TryReadbackFromGL();
   if (frame.size()) {
-    g_streamer->PushVidFrame(&frame, drc::kScreenWidth, drc::kScreenHeight,
+    g_streamer->PushVidFrame(&frame, g_width, g_height,
                              drc::PixelFormat::kBGRA,
                              drc::Streamer::FlipVertically);
   }

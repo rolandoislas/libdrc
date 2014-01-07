@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <drc/screen.h>
 #include <drc/streamer.h>
 #include <drc/types.h>
 #include <vector>
@@ -36,8 +37,12 @@ enum DemoMode {
   kReceiverDemo,
 };
 
-void Init(const char* name, DemoMode mode);
+void Init(const char* name, DemoMode mode, int w = drc::kScreenWidth,
+          int h = drc::kScreenHeight);
 void Quit();
+
+drc::u16 GetWidth();
+drc::u16 GetHeight();
 
 drc::Streamer* GetStreamer();
 
