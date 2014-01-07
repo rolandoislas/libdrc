@@ -88,7 +88,7 @@ TimerEvent* EventMachine::NewTimerEvent(u64 ns, Event::CallbackType cb) {
 Event* EventMachine::NewRepeatedTimerEvent(u64 ns, Event::CallbackType cb) {
   s64 seconds = ns / 1000000000;
   ns = ns % 1000000000;
-  
+
   struct itimerspec its = {
     { seconds, (s64)ns },
     { seconds, (s64)ns }
