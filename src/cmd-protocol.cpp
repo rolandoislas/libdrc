@@ -158,8 +158,10 @@ void CmdClient::PacketReceived(const std::vector<byte>& msg) {
   if (pkt.PacketType() == CmdPacketType::kQueryAck) {
     st->state = CmdPacketType::kReply;
   } else if (pkt.PacketType() == CmdPacketType::kReply) {
-    std::vector<byte> repl(pkt.Payload(), pkt.Payload() + pkt.PayloadSize());
-    st->reply_callback(true, repl);
+    if (st->reply_callback != nullptr) {
+      std::vector<byte> repl(pkt.Payload(), pkt.Payload() + pkt.PayloadSize());
+      st->reply_callback(true, repl);
+    }
     RemoveState(seqid);
   }
 }
@@ -194,8 +196,10 @@ bool CmdClient::RetryOperation(u16 seqid) {
 
   state->retries_count++;
   if (state->retries_count >= kMaxRetries) {
-    std::vector<byte> dummy;
-    state->reply_callback(false, dummy);
+    if (state->reply_callback != nullptr) {
+      std::vector<byte> dummy;
+      state->reply_callback(false, dummy);
+    }
     RemoveState(seqid);
   } else {
     SendQuery(seqid, state);

@@ -105,6 +105,9 @@ class Streamer {
   // but not both. If cb is defined, method is called asyncronously.
   bool GetUICConfig(std::vector<byte> *config, CommandReplyCallback cb);
 
+  // Attempts to shutdown the pad, not guaranteed to work.
+  void ShutdownPad();
+
  private:
   std::unique_ptr<UdpServer> msg_server_;
 

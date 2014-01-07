@@ -72,4 +72,8 @@ void drc_push_vid_frame(struct drc_streamer* self, const unsigned char* buffer,
 void drc_enable_system_input_feeder(struct drc_streamer* self) {
   self->streamer.EnableSystemInputFeeder();
 }
+
+void drc_shutdown_pad(struct drc_streamer* self) {
+  self->streamer.ShutdownPad();
+}
 }
