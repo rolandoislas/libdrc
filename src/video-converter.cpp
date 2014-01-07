@@ -141,12 +141,31 @@ SwsContext* VideoConverter::GetContextForParams(
   u16 width, height;
   PixelFormat pixfmt;
   bool flipv;
+  bool stretch;
+  bool keep_ar;
 
-  std::tie(width, height, pixfmt, flipv) = params;
+  std::tie(width, height, pixfmt, flipv, stretch, keep_ar) = params;
+
+  int target_w = width;
+  int target_h = height;
+
+  if (stretch) {
+    target_w = kScreenWidth;
+    target_h = kScreenHeight;
+
+    if (keep_ar) {
+      if ((864 * height) > (480 * width)) {
+        target_w = width * 480 / height;
+      } else {
+        target_h = height * 864 / width;
+      }
+    }
+  }
+
 
   SwsContext* ctx = sws_getCachedContext(ctxs_[params],
       width, height, ConvertPixFmt(pixfmt),
-      kScreenWidth, kScreenHeight, PIX_FMT_YUV420P,
+      target_w, target_h, PIX_FMT_YUV420P,
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
 
   ctxs_[params] = ctx;
@@ -157,14 +176,35 @@ void VideoConverter::DoConversion() {
   int y_size = kScreenWidth * kScreenHeight;
   int u_size = y_size / 4;
   int v_size = y_size / 4;
-  std::vector<byte> converted(y_size + u_size + v_size);
+
+  // init vector to (0,128,128) (black in yuv)
+  std::vector<byte> converted(y_size + u_size + v_size, 0);
+  std::fill_n(converted.data()+y_size, u_size+v_size, 128);
 
   SwsContext* ctx = GetContextForParams(current_params_);
 
   u16 width, height;
   PixelFormat pixfmt;
   bool flipv;
-  std::tie(width, height, pixfmt, flipv) = current_params_;
+  bool stretch;
+  bool keep_ar;
+  std::tie(width, height, pixfmt, flipv, stretch, keep_ar) = current_params_;
+
+  int target_w = width;
+  int target_h = height;
+
+  if (stretch) {
+    target_w = kScreenWidth;
+    target_h = kScreenHeight;
+
+    if (keep_ar) {
+      if ((864 * height) > (480 * width)) {
+        target_w = width * 480 / height;
+      } else {
+        target_h = height * 864 / width;
+      }
+    }
+  }
 
   byte* converted_planes[4] = {
       converted.data(),
@@ -189,6 +229,17 @@ void VideoConverter::DoConversion() {
       planes[i] += plane_size - strides[i];
       strides[i] = -strides[i];
     }
+  }
+
+  if (!stretch || keep_ar) {
+    int h_margin = (kScreenWidth - target_w)/2;
+    int v_margin = (kScreenHeight - target_h)/2;
+
+    converted_planes[0] += v_margin * converted_strides[0] + h_margin;
+    converted_planes[1] += (v_margin / 2) * converted_strides[1]
+                          + (h_margin / 2);
+    converted_planes[2] += (v_margin / 2) * converted_strides[1]
+                          + (h_margin / 2);
   }
 
   int res = sws_scale(ctx, planes.data(), strides.data(), 0, height,

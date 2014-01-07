@@ -50,8 +50,13 @@ class InputReceiver {
 
   void Poll(InputData* data);
 
+  void ResetCalibration(float margin_x = 0.0f, float size_x = 1.0f,
+                        float margin_y = 0.0f, float size_y = 1.0f);
+
   void CalibrateWithPoints(s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
-                           s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y);
+                           s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y,
+                           float margin_x, float size_x, float margin_y,
+                           float size_y);
 
  private:
   void SetCurrent(const InputData& new_current);
