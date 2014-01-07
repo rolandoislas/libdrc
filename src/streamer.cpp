@@ -31,6 +31,7 @@
 #include <drc/internal/video-converter.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/streamer.h>
+#include <drc/screen.h>
 #include <string>
 #include <vector>
 
@@ -122,10 +123,14 @@ void Streamer::Stop() {
 }
 
 void Streamer::PushVidFrame(std::vector<byte>* frame, u16 width, u16 height,
-                            PixelFormat pixfmt, FlippingMode flip) {
+                            PixelFormat pixfmt, FlippingMode flip,
+                            StretchMode stretch) {
   bool do_flip = (flip == FlipVertically);
+  bool do_stretch = (stretch != NoStretch);
+  bool keep_ar = (stretch == StretchKeepAspectRatio);
   vid_converter_->PushFrame(frame,
-                            std::make_tuple(width, height, pixfmt, do_flip));
+                            std::make_tuple(width, height, pixfmt, do_flip,
+                                            do_stretch, keep_ar));
 }
 
 void Streamer::PushNativeVidFrame(std::vector<byte>* frame) {
@@ -144,6 +149,37 @@ void Streamer::EnableSystemInputFeeder() {
 #ifdef __linux__
   input_receiver_->AddCallback(FeedDrcInputToUinput);
 #endif
+}
+
+void Streamer::SetTSArea(u16 width, u16 height, StretchMode stretch) {
+  float margin_x = 0.0f, margin_y = 0.0f, size_x = 1.0f, size_y = 1.0f;
+  switch (stretch) {
+    case StretchFull: {
+      break;
+    }
+    case NoStretch: {
+      margin_x = (kScreenWidth - width) / 2.0f;
+      margin_y = (kScreenHeight - height) / 2.0f;
+
+      size_x = static_cast<float>(width/kScreenWidth);
+      size_y = static_cast<float>(height/kScreenHeight);
+      break;
+    }
+    case StretchKeepAspectRatio: {
+      if ((864 * height) > (480 * width)) {
+        int target_w = width * 480 / height;
+        margin_x = (kScreenWidth - target_w) / 2.0f;
+        size_x = static_cast<float>(target_w/kScreenWidth);
+      } else {
+        int target_h = height * 864 / width;
+        margin_y = (kScreenHeight - target_h) / 2.0f;
+        size_y = static_cast<float>(target_h/kScreenHeight);
+      }
+      break;
+    }
+  }
+
+  input_receiver_->ResetCalibration(margin_x, size_x, margin_y, size_y);
 }
 
 bool Streamer::SetLcdBacklight(int level, bool wait) {

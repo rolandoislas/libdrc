@@ -48,10 +48,7 @@ const float kStickDeadZone = 0.1;
 
 InputReceiver::InputReceiver(const std::string& hid_bind)
     : server_(new UdpServer(hid_bind)) {
-
-  // TODO(delroth): these are the values from my DRC. Make it use those from
-  // the UIC EEPROM.
-  CalibrateWithPoints(329, 3672, 3738, 403, 53, 30, 802, 451);
+  ResetCalibration(0.0f, 1.0f, 0.0f, 1.0f);
 }
 
 InputReceiver::~InputReceiver() {
@@ -85,9 +82,19 @@ void InputReceiver::Poll(InputData* data) {
   *data = current_;
 }
 
+
+void InputReceiver::ResetCalibration(float margin_x, float size_x,
+                                     float margin_y, float size_y) {
+  // TODO(delroth): these are the values from my DRC. Make it use those from
+  // the UIC EEPROM.
+  CalibrateWithPoints(329, 3672, 3738, 403, 53, 30, 802, 451,
+                      margin_x, size_x, margin_y, size_y);
+}
+
 void InputReceiver::CalibrateWithPoints(
     s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
-    s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y) {
+    s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y,
+    float margin_x, float size_x, float margin_y, float size_y) {
   ts_ox_ = static_cast<float>(raw_2_x * ref_1_x - raw_1_x * ref_2_x) /
                   (raw_2_x - raw_1_x);
   ts_w_ = static_cast<float>(ref_1_x - ref_2_x) / (raw_1_x - raw_2_x);
@@ -95,6 +102,14 @@ void InputReceiver::CalibrateWithPoints(
   ts_oy_ = static_cast<float>(raw_2_y * ref_1_y - raw_1_y * ref_2_y) /
                   (raw_2_y - raw_1_y);
   ts_h_ = static_cast<float>(ref_1_y - ref_2_y) / (raw_1_y - raw_2_y);
+
+  // post processing
+
+  ts_ox_ = (ts_ox_ - margin_x)/size_x;
+  ts_oy_ = (ts_oy_ - margin_y)/size_y;
+
+  ts_w_ = ts_w_ / size_x;
+  ts_h_ = ts_h_ / size_y;
 }
 
 void InputReceiver::SetCurrent(const InputData& new_current) {

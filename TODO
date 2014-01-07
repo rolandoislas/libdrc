@@ -18,8 +18,6 @@ Major priority
 Minor priority
 --------------
 
-* "Keep aspect ratio" option for frame converter (black bars).
-
 * Find the macroblock type causing random corruptions on PC->DRC video data.
 
 * Accelerometer/Gyro/Compass data support

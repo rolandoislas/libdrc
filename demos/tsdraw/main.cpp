@@ -185,6 +185,8 @@ int main(int argc, char** argv) {
 
   demo::Init("tsdraw", demo::kStreamerSDLDemo, width, height);
 
+  demo::GetStreamer()->SetTSArea(demo::GetWidth(), demo::GetHeight());
+
   drc::InputData input_data;
   SDL_Surface* surface = SDL_GetVideoSurface();
   while (demo::HandleEvents()) {
