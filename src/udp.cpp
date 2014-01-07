@@ -85,6 +85,7 @@ bool UdpClient::Start() {
 void UdpClient::Stop() {
   if (sock_fd_ != -1) {
     close(sock_fd_);
+    sock_fd_ = -1;
   }
 }
 

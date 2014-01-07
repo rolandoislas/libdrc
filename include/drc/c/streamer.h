@@ -58,6 +58,7 @@ void drc_push_vid_frame(struct drc_streamer* self, const unsigned char* buffer,
                         unsigned short height, enum drc_pixel_format pixfmt,
                         enum drc_flipping_mode flipmode);
 void drc_enable_system_input_feeder(struct drc_streamer* self);
+void drc_shutdown_pad(struct drc_streamer* self);
 
 #ifdef __cplusplus
 }

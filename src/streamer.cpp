@@ -57,17 +57,9 @@ void RunGenericAsyncCmd(CmdClient* cli, int service, int method,
   pkt.SetServiceId(service);
   pkt.SetMethodId(method);
   pkt.SetPayload(msg.data(), msg.size());
-
-  if (cb == nullptr) {
-    cb = [](bool succ, const std::vector<byte>& data) {
-      // empty callback
-    };
-  }
-
   cli->AsyncQuery(CmdQueryType::kGenericCommand, pkt.GetBytes(),
                       pkt.GetSize(), cb);
 }
-
 }  // namespace
 
 Streamer::Streamer(const std::string& vid_dst,
@@ -85,6 +77,7 @@ Streamer::Streamer(const std::string& vid_dst,
 }
 
 Streamer::~Streamer() {
+  Stop();
 }
 
 bool Streamer::Start() {
@@ -178,6 +171,13 @@ bool Streamer::GetUICConfig(std::vector<byte> *config,
     rv = true;
   }
   return rv;
+}
+
+void Streamer::ShutdownPad() {
+  // Sends command 0.4.1 with payload of 0x06 (SHUTDOWN)
+  std::vector<byte> payload;
+  payload.push_back(0x06 & 0xFF);
+  RunGenericAsyncCmd(cmd_client_.get(), 4, 0x01, payload, nullptr);
 }
 
 }  // namespace drc
