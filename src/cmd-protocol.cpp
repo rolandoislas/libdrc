@@ -174,8 +174,8 @@ void CmdClient::SendQuery(u16 seqid, CmdState* cmd_st) {
   pkt.SetPayload(cmd_st->query_payload.data(), cmd_st->query_payload.size());
 
   cmd_st->timeout_evt = NewTimerEvent(kTimeoutMs * 1000000,
-                                      [&](Event* ev) {
-    return RetryOperation(seqid);
+                                      [this, seqid](Event* ev) {
+    return this->RetryOperation(seqid);
   });
 
   cmd_st->state = CmdPacketType::kQueryAck;

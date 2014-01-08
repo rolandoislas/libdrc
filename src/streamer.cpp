@@ -28,6 +28,7 @@
 #include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/uinput-feeder.h>
+#include <drc/internal/uvcuac-synchronizer.h>
 #include <drc/internal/video-converter.h>
 #include <drc/internal/video-streamer.h>
 #include <drc/streamer.h>
@@ -74,7 +75,8 @@ Streamer::Streamer(const std::string& vid_dst,
       cmd_client_(new CmdClient(cmd_dst, cmd_bind)),
       vid_converter_(new VideoConverter()),
       vid_streamer_(new VideoStreamer(vid_dst, aud_dst)),
-      input_receiver_(new InputReceiver(input_bind)) {
+      input_receiver_(new InputReceiver(input_bind)),
+      uvcuac_synchronizer_(new UvcUacStateSynchronizer(cmd_client_.get())) {
 }
 
 Streamer::~Streamer() {
@@ -99,7 +101,8 @@ bool Streamer::Start() {
       !cmd_client_->Start() ||
       !vid_converter_->Start() ||
       !vid_streamer_->Start() ||
-      !input_receiver_->Start()) {
+      !input_receiver_->Start() ||
+      !uvcuac_synchronizer_->Start()) {
     Stop();
     return false;
   }
@@ -107,12 +110,13 @@ bool Streamer::Start() {
 }
 
 void Streamer::Stop() {
-  msg_server_->Stop();
-  aud_streamer_->Stop();
-  cmd_client_->Stop();
-  vid_converter_->Stop();
-  vid_streamer_->Stop();
+  uvcuac_synchronizer_->Stop();
   input_receiver_->Stop();
+  vid_streamer_->Stop();
+  vid_converter_->Stop();
+  cmd_client_->Stop();
+  aud_streamer_->Stop();
+  msg_server_->Stop();
 }
 
 void Streamer::PushVidFrame(std::vector<byte>* frame, u16 width, u16 height,

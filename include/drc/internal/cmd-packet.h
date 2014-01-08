@@ -127,14 +127,21 @@ class UvcUacCmdPacket {
   bool MicEnabled() const;
   bool MicMuted() const;
   s16 MicVolume() const;
+  s16 MicJackVolume() const;
   u16 MicSamplingRate() const;
   bool CamEnabled() const;
+  u8 CamPowerFrequency() const;
+  bool CamAutoExposureEnabled() const;
 
   void SetMicEnabled(bool flag);
   void SetMicMuted(bool flag);
   void SetMicVolume(s16 vol);
+  void SetMicJackVolume(s16 vol);
   void SetMicSamplingRate(u16 sampling_rate);
-  void SetCamEnabled(bool flag);
+  void SetCamEnabled(bool enabled);
+  void SetCamPower(u8 power);
+  void SetCamPowerFrequency(u8 freq);
+  void SetCamAutoExposureEnabled(bool auto_exp);
 
   const byte* GetBytes() const { return pkt_.data(); }
   size_t GetSize() const { return kUvcUacCmdPacketSize; }

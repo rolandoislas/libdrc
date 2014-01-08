@@ -24,6 +24,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstring>
 #include <drc/internal/events.h>
 #include <drc/types.h>
 #include <fcntl.h>
@@ -137,7 +138,9 @@ void EventMachine::ProcessEvents() {
       if (evt->read_size) {
         std::vector<byte> buffer(evt->read_size);
         if (read(evt->fd, buffer.data(), evt->read_size) != evt->read_size) {
-          perror("read failed - EventMachine::ProcessEvents");
+          fprintf(stderr, "read failed - EventMachine::ProcessEvents:"
+                          "(fd:%d, size:%d): %s\n", evt->fd, evt->read_size,
+                          strerror(errno));
         }
       }
 
@@ -169,6 +172,7 @@ Event* EventMachine::NewEvent(int fd, int read_size, Event::CallbackType cb) {
   evt->callback = cb;
 
   struct epoll_event epoll_evt;
+  memset(&epoll_evt, 0, sizeof (epoll_evt));
   epoll_evt.events = EPOLLIN;
   epoll_evt.data.fd = fd;
   epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &epoll_evt);
