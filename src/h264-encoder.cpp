@@ -104,12 +104,22 @@ void DumpH264Frame(FILE* fp, const H264ChunkArray& chunks, bool is_idr) {
     fwrite(nal_p_frame, sizeof (nal_p_frame), 1, fp);
   }
 
+  size_t nal_length = 0;
   for (const auto& chunk : chunks) {
-    std::vector<byte> escaped(2 * std::get<1>(chunk));
-    size_t escaped_size = NalEscape(escaped.data(), std::get<0>(chunk),
-                                    std::get<1>(chunk));
-    fwrite(escaped.data(), escaped_size, 1, fp);
+    nal_length += std::get<1>(chunk);
   }
+
+  std::vector<byte> unescaped;
+  unescaped.reserve(nal_length);
+  for (const auto& chunk : chunks) {
+    unescaped.insert(unescaped.end(), std::get<0>(chunk),
+                     std::get<0>(chunk) + std::get<1>(chunk));
+  }
+
+  std::vector<byte> escaped(2 * nal_length);
+  size_t escaped_size = NalEscape(escaped.data(), unescaped.data(),
+                                  unescaped.size());
+  fwrite(escaped.data(), escaped_size, 1, fp);
 }
 
 }  // namespace
