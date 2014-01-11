@@ -25,6 +25,7 @@
 #include <cstring>
 #include <drc/internal/audio-streamer.h>
 #include <drc/internal/cmd-protocol.h>
+#include <drc/internal/device-config.h>
 #include <drc/internal/input-receiver.h>
 #include <drc/internal/udp.h>
 #include <drc/internal/uinput-feeder.h>
@@ -76,7 +77,8 @@ Streamer::Streamer(const std::string& vid_dst,
       vid_converter_(new VideoConverter()),
       vid_streamer_(new VideoStreamer(vid_dst, aud_dst)),
       input_receiver_(new InputReceiver(input_bind)),
-      uvcuac_synchronizer_(new UvcUacStateSynchronizer(cmd_client_.get())) {
+      uvcuac_synchronizer_(new UvcUacStateSynchronizer(cmd_client_.get())),
+      device_config_(new DeviceConfig()) {
 }
 
 Streamer::~Streamer() {
@@ -106,6 +108,8 @@ bool Streamer::Start() {
     Stop();
     return false;
   }
+
+  SyncUICConfig();
   return true;
 }
 
@@ -176,7 +180,7 @@ void Streamer::SetTSArea(u16 width, u16 height, StretchMode stretch) {
     }
   }
 
-  input_receiver_->ResetCalibration(margin_x, size_x, margin_y, size_y);
+  input_receiver_->SetMargins(margin_x, size_x, margin_y, size_y);
 }
 
 bool Streamer::SetLcdBacklight(int level, bool wait) {
@@ -191,24 +195,34 @@ bool Streamer::SetLcdBacklight(int level, bool wait) {
   return rv;
 }
 
-bool Streamer::GetUICConfig(std::vector<byte> *config,
-                            CmdState::ReplyCallback cb) {
-  bool rv = false;
-  std::vector<byte> reply;
-  std::vector<byte> payload;
-  if (cb == nullptr) {
-    rv = RunGenericCmd(cmd_client_.get(), 5, 0x06, payload, &reply);
-    if (rv) {
-      if (reply.size() == 0x310) {
-        if (config) {
-          config->assign(reply.data()+0x10, reply.data()+0x310);
-          rv = true;
+
+bool Streamer::SyncUICConfig(bool wait) {
+  std::vector<byte> query;
+  bool rv = true;
+  CmdState::ReplyCallback uic_config_callback =
+    [this](bool success, const std::vector<byte>& reply) {
+      if (success) {
+        if (reply.size() == 0x310) {
+          this->device_config_->LoadFromBlob(reply.data() + 0x10, 0x300);
+          this->input_receiver_->SetCalibrationPoints(
+              this->device_config_->GetPanelRef1()[0],
+              this->device_config_->GetPanelRef1()[1],
+              this->device_config_->GetPanelRef2()[0],
+              this->device_config_->GetPanelRef2()[1],
+              this->device_config_->GetPanelRaw1()[0],
+              this->device_config_->GetPanelRaw1()[1],
+              this->device_config_->GetPanelRaw2()[0],
+              this->device_config_->GetPanelRaw2()[1]);
         }
       }
-    }
+    };
+
+  if (wait) {
+    std::vector<byte> response;
+    rv = RunGenericCmd(cmd_client_.get(), 5, 0x14, query, &response);
+    uic_config_callback(rv, response);
   } else {
-    RunGenericAsyncCmd(cmd_client_.get(), 5, 0x06, payload, cb);
-    rv = true;
+    RunGenericAsyncCmd(cmd_client_.get(), 5, 0x06, query, uic_config_callback);
   }
   return rv;
 }

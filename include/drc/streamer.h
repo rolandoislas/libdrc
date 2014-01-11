@@ -35,6 +35,7 @@ namespace drc {
 
 class AudioStreamer;
 class CmdClient;
+class DeviceConfig;
 class InputReceiver;
 class VideoConverter;
 class VideoStreamer;
@@ -116,9 +117,8 @@ class Streamer {
   // Level must be in [0;4] (0 is minimum, 4 is maximum).
   bool SetLcdBacklight(int level, bool wait = false);
 
-  // Gets the UIC config. cb can be nullptr, or config can be nullptr
-  // but not both. If cb is defined, method is called asyncronously.
-  bool GetUICConfig(std::vector<byte> *config, CommandReplyCallback cb);
+  // Retrieves the device's config from UIC
+  bool SyncUICConfig(bool wait = false);
 
   // Attempts to shutdown the pad, not guaranteed to work.
   void ShutdownPad();
@@ -132,6 +132,7 @@ class Streamer {
   std::unique_ptr<VideoStreamer> vid_streamer_;
   std::unique_ptr<InputReceiver> input_receiver_;
   std::unique_ptr<UvcUacStateSynchronizer> uvcuac_synchronizer_;
+  std::unique_ptr<DeviceConfig> device_config_;
 };
 
 }  // namespace drc
