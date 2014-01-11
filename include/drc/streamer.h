@@ -39,6 +39,7 @@ class InputReceiver;
 class VideoConverter;
 class VideoStreamer;
 class UdpServer;
+class UvcUacStateSynchronizer;
 
 class Streamer {
  public:
@@ -130,6 +131,7 @@ class Streamer {
   std::unique_ptr<VideoConverter> vid_converter_;
   std::unique_ptr<VideoStreamer> vid_streamer_;
   std::unique_ptr<InputReceiver> input_receiver_;
+  std::unique_ptr<UvcUacStateSynchronizer> uvcuac_synchronizer_;
 };
 
 }  // namespace drc

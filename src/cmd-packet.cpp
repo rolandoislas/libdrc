@@ -226,6 +226,10 @@ s16 UvcUacCmdPacket::MicVolume() const {
   return (pkt_[6] << 8) | pkt_[7];
 }
 
+s16 UvcUacCmdPacket::MicJackVolume() const {
+  return (pkt_[8] << 8) | pkt_[9];
+}
+
 u16 UvcUacCmdPacket::MicSamplingRate() const {
   return (pkt_[12] << 8) | pkt_[13];
 }
@@ -234,17 +238,30 @@ bool UvcUacCmdPacket::CamEnabled() const {
   return pkt_[14];
 }
 
+u8 UvcUacCmdPacket::CamPowerFrequency() const {
+  return pkt_[16];
+}
+
+bool UvcUacCmdPacket::CamAutoExposureEnabled() const {
+  return pkt_[17] != 0;
+}
+
 void UvcUacCmdPacket::SetMicEnabled(bool flag) {
-  pkt_[4] = flag;
+  pkt_[4] = flag ? 1 : 0;
 }
 
 void UvcUacCmdPacket::SetMicMuted(bool flag) {
-  pkt_[5] = flag;
+  pkt_[5] = flag ? 1 : 0;
 }
 
 void UvcUacCmdPacket::SetMicVolume(s16 volume) {
-  pkt_[6] = pkt_[8] = volume >> 8;
-  pkt_[7] = pkt_[9] = volume & 0xFF;
+  pkt_[6] = volume >> 8;
+  pkt_[7] = volume & 0xFF;
+}
+
+void UvcUacCmdPacket::SetMicJackVolume(s16 volume) {
+  pkt_[8] = volume >> 8;
+  pkt_[9] = volume & 0xFF;
 }
 
 void UvcUacCmdPacket::SetMicSamplingRate(u16 sampling_rate) {
@@ -252,8 +269,20 @@ void UvcUacCmdPacket::SetMicSamplingRate(u16 sampling_rate) {
   pkt_[13] = sampling_rate & 0xFF;
 }
 
-void UvcUacCmdPacket::SetCamEnabled(bool flag) {
-  pkt_[14] = flag;
+void UvcUacCmdPacket::SetCamEnabled(bool enabled) {
+  pkt_[14] = enabled ? 1 : 0;
+}
+
+void UvcUacCmdPacket::SetCamPower(u8 power) {
+  pkt_[15] = power;
+}
+
+void UvcUacCmdPacket::SetCamPowerFrequency(u8 freq) {
+  pkt_[16] = freq;
+}
+
+void UvcUacCmdPacket::SetCamAutoExposureEnabled(bool auto_exp) {
+  pkt_[17] = auto_exp ? 1 : 0;
 }
 
 TimeCmdPacket::TimeCmdPacket() {
