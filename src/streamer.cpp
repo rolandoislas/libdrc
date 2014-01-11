@@ -219,7 +219,7 @@ bool Streamer::SyncUICConfig(bool wait) {
 
   if (wait) {
     std::vector<byte> response;
-    rv = RunGenericCmd(cmd_client_.get(), 5, 0x14, query, &response);
+    rv = RunGenericCmd(cmd_client_.get(), 5, 0x06, query, &response);
     uic_config_callback(rv, response);
   } else {
     RunGenericAsyncCmd(cmd_client_.get(), 5, 0x06, query, uic_config_callback);
