@@ -50,13 +50,12 @@ class InputReceiver {
 
   void Poll(InputData* data);
 
-  void ResetCalibration(float margin_x = 0.0f, float size_x = 1.0f,
-                        float margin_y = 0.0f, float size_y = 1.0f);
+  void SetMargins(float margin_x, float size_x, float margin_y, float size_y);
 
-  void CalibrateWithPoints(s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
-                           s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y,
-                           float margin_x, float size_x, float margin_y,
-                           float size_y);
+  void SetCalibrationPoints(s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
+                            s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y);
+
+  void Recalibrate();
 
  private:
   void SetCurrent(const InputData& new_current);
@@ -72,6 +71,9 @@ class InputReceiver {
   std::vector<Callback> cbs_;
 
   // Touchscreen calibration parameters.
+  s32 ref_1_x_, ref_1_y_, ref_2_x_, ref_2_y_;
+  s32 raw_1_x_, raw_1_y_, raw_2_x_, raw_2_y_;
+  float margin_x_, size_x_, margin_y_, size_y_;
   float ts_ox_, ts_oy_, ts_w_, ts_h_;
 };
 

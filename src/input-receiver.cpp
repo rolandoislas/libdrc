@@ -46,9 +46,15 @@ const float kStickDeadZone = 0.1;
 
 }  // namespace
 
+
+// Initial calibration values below are those that the device itself
+// uses prior to loading the real ones from UIC config.
 InputReceiver::InputReceiver(const std::string& hid_bind)
-    : server_(new UdpServer(hid_bind)) {
-  ResetCalibration(0.0f, 1.0f, 0.0f, 1.0f);
+    : server_(new UdpServer(hid_bind)),
+      ref_1_x_(20), ref_1_y_(20), ref_2_x_(834), ref_2_y_(460),
+      raw_1_x_(195), raw_1_y_(3818), raw_2_x_(3877), raw_2_y_(373),
+      margin_x_(0.0f), size_x_(1.0f), margin_y_(0.0f), size_y_(1.0f) {
+  Recalibrate();
 }
 
 InputReceiver::~InputReceiver() {
@@ -83,33 +89,48 @@ void InputReceiver::Poll(InputData* data) {
 }
 
 
-void InputReceiver::ResetCalibration(float margin_x, float size_x,
-                                     float margin_y, float size_y) {
-  // TODO(delroth): these are the values from my DRC. Make it use those from
-  // the UIC EEPROM.
-  CalibrateWithPoints(329, 3672, 3738, 403, 53, 30, 802, 451,
-                      margin_x, size_x, margin_y, size_y);
+void InputReceiver::SetMargins(float margin_x, float size_x,
+                               float margin_y, float size_y) {
+  margin_x_ = margin_x;
+  size_x_ = size_x;
+  margin_y_ = margin_y;
+  size_y_ = size_y;
+
+  Recalibrate();
 }
 
-void InputReceiver::CalibrateWithPoints(
-    s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y,
+void InputReceiver::SetCalibrationPoints(
     s32 ref_1_x, s32 ref_1_y, s32 ref_2_x, s32 ref_2_y,
-    float margin_x, float size_x, float margin_y, float size_y) {
-  ts_ox_ = static_cast<float>(raw_2_x * ref_1_x - raw_1_x * ref_2_x) /
-                  (raw_2_x - raw_1_x);
-  ts_w_ = static_cast<float>(ref_1_x - ref_2_x) / (raw_1_x - raw_2_x);
+    s32 raw_1_x, s32 raw_1_y, s32 raw_2_x, s32 raw_2_y) {
+  ref_1_x_ = ref_1_x;
+  ref_1_y_ = ref_1_y;
+  ref_2_x_ = ref_2_x;
+  ref_2_y_ = ref_2_y;
+  raw_1_x_ = raw_1_x;
+  raw_1_y_ = raw_1_y;
+  raw_2_x_ = raw_2_x;
+  raw_2_y_ = raw_2_y;
 
-  ts_oy_ = static_cast<float>(raw_2_y * ref_1_y - raw_1_y * ref_2_y) /
-                  (raw_2_y - raw_1_y);
-  ts_h_ = static_cast<float>(ref_1_y - ref_2_y) / (raw_1_y - raw_2_y);
+  Recalibrate();
+}
+
+
+void InputReceiver::Recalibrate() {
+  ts_ox_ = static_cast<float>(raw_2_x_ * ref_1_x_ - raw_1_x_ * ref_2_x_) /
+                  (raw_2_x_ - raw_1_x_);
+  ts_w_ = static_cast<float>(ref_1_x_ - ref_2_x_) / (raw_1_x_ - raw_2_x_);
+
+  ts_oy_ = static_cast<float>(raw_2_y_ * ref_1_y_ - raw_1_y_ * ref_2_y_) /
+                  (raw_2_y_ - raw_1_y_);
+  ts_h_ = static_cast<float>(ref_1_y_ - ref_2_y_) / (raw_1_y_ - raw_2_y_);
 
   // post processing
 
-  ts_ox_ = (ts_ox_ - margin_x)/size_x;
-  ts_oy_ = (ts_oy_ - margin_y)/size_y;
+  ts_ox_ = (ts_ox_ - margin_x_) / size_x_;
+  ts_oy_ = (ts_oy_ - margin_y_) / size_y_;
 
-  ts_w_ = ts_w_ / size_x;
-  ts_h_ = ts_h_ / size_y;
+  ts_w_ = ts_w_ / size_x_;
+  ts_h_ = ts_h_ / size_y_;
 }
 
 void InputReceiver::SetCurrent(const InputData& new_current) {
