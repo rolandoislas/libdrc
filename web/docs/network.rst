@@ -18,7 +18,7 @@ Connecting a Wii U GamePad to a computer requires compatible Wi-Fi hardware.
 Any Wi-Fi NIC that can create access points on 5GHz 802.11 channels could
 potentially work. In practice, the following drivers/NICs were tested:
 
-* rt2800usb: works with Linux >= 3.11
+* rt2800usb: works with Linux >= 3.12
 * ath9k/carl9170: works with some caveats (communication might desync more
   often because of a TSF drifting issue)
 
@@ -28,8 +28,8 @@ Linux kernel patch
 A very simple Linux kernel patch is required to export the Wi-Fi NIC *Time
 Synchronization Function* (TSF) to userland. A patched version of the
 ``mac80211`` Linux module can be found on the ``memahaxx/drc-mac80211``
-repository. It is based on Linux 3.11.3 but the patch should apply cleanly to
-most recent Linux versions.
+repository. It is based on Linux 3.12.3 but the patch should apply cleanly to
+most recent Linux versions (e.g. Ubuntu > 13.10).
 
 To check if the patched module is being used, try::
 
