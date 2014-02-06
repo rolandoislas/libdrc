@@ -79,10 +79,19 @@ TODO: when is WIFI booted?
 
 Image resources
 ~~~~~~~~~~~~~~~
-The ``ERR_`` blob contains a 854x516 image and its color palette. The beginning of the blob contains a 1024 byte colormap (256 x 4 x 1 byte for red, green, blue and alpha). Starting at then right after the palette (at offset ``0x400``) is the pixel raster date. The pixels are saved row-major with 8 bit-per-pixel (because it uses a 8-bit colormap). Each row is padded with two bits of zero, so that the row length is a multiple of four. All it is just a bmp file, stripped of all enconding info.
+The ``ERR_`` blob contains a 854x516 image and its color palette. The
+beginning of the blob contains a 1024 byte colormap (256 x 4 x 1 byte for red,
+green, blue and alpha). Starting at then right after the palette (at offset
+``0x400``) is the pixel raster date. The pixels are saved row-major with 8
+bit-per-pixel (because it uses a 8-bit colormap). Each row is padded with two
+bits of zero, so that the row length is a multiple of four. All it is just a
+bmp file, stripped of all enconding info.
 
-The first 480 rows of the ``ERR_`` image seem to contain the background, while the last 36 rows seem contains bitmaps of hexadecimal letters:
+The first 480 rows of the ``ERR_`` image seem to contain the background, while
+the last 36 rows seem contains bitmaps of hexadecimal letters:
 
 .. image:: ERR_.png
 
-The ``IMG_`` blob on the other hand contains multiple images (e.g the nintendo logo) saved in a similar fashion but including encoding info (they do not use the row padding though).
+The ``IMG_`` blob on the other hand contains multiple images (e.g the nintendo
+logo) saved in a similar fashion but including encoding info (they do not use
+the row padding though).
