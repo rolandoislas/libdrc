@@ -76,3 +76,17 @@ LVC firmware
 ------------
 
 TODO: when is WIFI booted?
+
+Image resources
+~~~~~~~~~~~~~~~
+The ``ERR_`` blob contains a 854x516 image, starting at offset ``0x400``. The image is saved row-major and the rows are padded with two bits of zero (so that the row length is a multiple of four). The first 480 rows seem to be the ones displayed in the case of an problem, while the last 36 rows seem to be used to save hexadecimal letters:
+
+.. image:: ERR_.png
+
+The ``IMG_`` blob contains multiple images (e.g the nintendo logo), saved in a similar fashion.
+
+The magic number for image resources seems to be the ``0x4040 40ff``. 
+
+
+
+
