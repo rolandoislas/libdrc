@@ -76,3 +76,22 @@ LVC firmware
 ------------
 
 TODO: when is WIFI booted?
+
+Image resources
+~~~~~~~~~~~~~~~
+The ``ERR_`` blob contains a 854x516 RGBA image encoded using a color palette.
+The beginning of the blob contains a 1024 byte colormap (256 x 4 x 1 byte, for
+red, green, blue and alpha). Right after the palette (at offset ``0x400``)
+starts the pixel raster data. The pixels are saved row-major with 8 bit-
+per-pixel (because it uses a 8-bit colormap). Each row is padded with two bits
+of zero, so that the row length is a multiple of four (bmp does that too).
+Basically just a bmp file, stripped of all its enconding info.
+
+The first 480 rows of the ``ERR_`` image seem to contain the background image,
+while the last 36 rows seem to contains bitmaps of hexadecimal letters:
+
+.. image:: ERR_.png
+
+The ``IMG_`` blob on the other hand contains multiple images (e.g the nintendo
+logo) saved in a similar fashion but including encoding info (they do not use
+the row padding though).
