@@ -165,7 +165,12 @@ SwsContext* VideoConverter::GetContextForParams(
 
   SwsContext* ctx = sws_getCachedContext(ctxs_[params],
       width, height, ConvertPixFmt(pixfmt),
-      target_w, target_h, PIX_FMT_YUV420P,
+      target_w, target_h,
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51, 74, 100)
+      AV_PIX_FMT_YUV420P,
+#else
+      PIX_FMT_YUV420P,
+#endif
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
 
   ctxs_[params] = ctx;

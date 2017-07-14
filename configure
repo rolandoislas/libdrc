@@ -74,7 +74,7 @@ for DEP in $DEPS
 do
     if lib_present "$DEP"; then
         CXXFLAGS+=$(lib_cflags $DEP)
-        LDFLAGS+=$(lib_ldflags $DEP)
+        LDFLAGS+=" $(lib_ldflags $DEP)"
     else
         echo 2>&1 "error: missing one of the required dependencies ($DEP)"
         exit 1
@@ -117,13 +117,13 @@ fi
 
 # Build demos only if we have the required libs installed
 DEMOS_DEPS="gl glu glew sdl"
-LDFLAGS_DEMOS=
+LDFLAGS_DEMOS=-lpthread
 if [ x"$DEMOS" = x"y" ]; then
     for DEMOS_DEP in $DEMOS_DEPS
     do
         if lib_present $DEMOS_DEP; then
             CXXFLAGS+=$(lib_cflags $DEMOS_DEP)
-            LDFLAGS_DEMOS+=$(lib_ldflags $DEMOS_DEP)
+            LDFLAGS_DEMOS+=" $(lib_ldflags $DEMOS_DEP)"
         else
            echo 2>&1 "error: demos cannot be built because one of the dependencies ($DEMOS_DEP) could not be found"
         echo 2>&1 "error: demos build can be disabled with --disable-demos"
